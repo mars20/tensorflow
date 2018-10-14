@@ -47,8 +47,8 @@ LIBS := -lstdc++
 # generate things like the protobuf compiler that require that), so all of
 # these settings are for the target compiler.
 CXXFLAGS := -O3 -DNDEBUG
-CXXFLAGS += --std=c++11
 CCFLAGS := ${CXXFLAGS}
+CXXFLAGS += --std=c++11
 CFLAGS :=
 LDOPTS := -L/usr/local/lib
 ARFLAGS := -r
@@ -79,6 +79,8 @@ $(wildcard tensorflow/contrib/lite/c/*.c) \
 $(wildcard tensorflow/contrib/lite/core/api/*.cc) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/*.c) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/*.cc) \
+$(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/reference/*.c) \
+$(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/reference/*.cc) \
 $(PROFILER_SRCS)
 
 # Remove any duplicates.
