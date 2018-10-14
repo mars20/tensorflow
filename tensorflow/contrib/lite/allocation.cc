@@ -39,14 +39,12 @@ FileCopyAllocation::FileCopyAllocation(const char* filename,
     error_reporter_->Report("Could not open '%s'.", filename);
     return;
   }
-  // TODO(ahentz): Why did you think using fseek here was better for finding
-  // the size?
-  struct stat sb;
-  if (fstat(fileno(file.get()), &sb) != 0) {
-    error_reporter_->Report("Failed to get file size of '%s'.", filename);
-    return;
-  }
-  buffer_size_bytes_ = sb.st_size;
+
+  // Get file buffer size
+  fseek(file.get(), 0, SEEK_END);
+  buffer_size_bytes_ = ftell(file.get());
+  fseek(file.get(), 0, SEEK_SET);
+
   std::unique_ptr<char[]> buffer(new char[buffer_size_bytes_]);
   if (!buffer) {
     error_reporter_->Report("Malloc of buffer to hold copy of '%s' failed.",
