@@ -16,7 +16,6 @@ limitations under the License.
 #define TENSORFLOW_CONTRIB_LITE_EXPERIMENTAL_RISCV_KERNELS_REFERENCE_SOFTMAX_FLOAT_H_
 
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/common.h"
-#include "tensorflow/contrib/lite/kernels/internal/round.h"
 #include "tensorflow/contrib/lite/kernels/internal/types.h"
 
 namespace tflite {
