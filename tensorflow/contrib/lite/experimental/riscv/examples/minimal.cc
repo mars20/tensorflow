@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/contrib/lite/op_resolver.h"
 //#include "tensorflow/contrib/lite/optional_debug_tools.h"
 #include "tensorflow/contrib/lite/profiling/time.h"
+#include "tensorflow/contrib/lite/experimental/riscv/profiling/stats.h"
 
 // Usage: minimal <tflite model>
 
@@ -55,6 +56,11 @@ int main(int argc, char* argv[]) {
 
   printf("=== Run started ===\n");
   int64_t start_us = profiling::time::NowMicros();
+  #ifdef RISCV
+  tflite::riscv::stats::csr counters;
+  tflite::riscv::stats::StartStats(&counters);  // enable csr counters
+  #endif
+
 
   // Fill input buffers
   // TODO(user): Insert code to fill input tensors
@@ -63,6 +69,12 @@ int main(int argc, char* argv[]) {
   TFLITE_MINIMAL_CHECK(interpreter->Invoke() == kTfLiteOk);
 
   int64_t end_us = profiling::time::NowMicros();
+
+  #ifdef RISCV
+  tflite::riscv::stats::StopStats(&counters);    // disable csr counters
+  tflite::riscv::stats::PrintStats(&counters);
+  #endif
+
   printf("\nInference time = %d us\n", end_us - start_us);
   printf("=== Run complete ===\n");
 

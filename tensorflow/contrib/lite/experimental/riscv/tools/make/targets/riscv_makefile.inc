@@ -2,6 +2,6 @@
 ifeq ($(TARGET), riscv64)
   TARGET_ARCH := riscv64
   TARGET_TOOLCHAIN_PREFIX := riscv64-unknown-elf-
-  CXXFLAGS += --std=gnu++11
+  CXXFLAGS += --std=gnu++11 -DRISCV
 endif
 
