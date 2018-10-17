@@ -131,12 +131,14 @@ void AverageEvalFloat(TfLiteContext* context, TfLiteNode* node,
   if (kernel_type == kReference) {
     TF_LITE_AVERAGE_POOL(reference_ops);
   } else if(kernel_type == kOptimized) {
+    #ifdef RISCV
     // printf("=== Optimized Average Pooling ===\n");
     // tflite::riscv::stats::csr counters_pool;
     // tflite::riscv::stats::StartStats(&counters_pool);
     TF_LITE_AVERAGE_POOL(optimized_ops);
     // tflite::riscv::stats::StopStats(&counters_pool);
     // tflite::riscv::stats::PrintStats(&counters_pool);
+    #endif
   } else {
     static_assert("Optimized ops for RISCV not implemented yet.");
   }
@@ -301,7 +303,12 @@ TfLiteRegistration* Register_L2_POOL_OPT() {
 }
 
 TfLiteRegistration* Register_AVERAGE_POOL_2D() {
-  return Register_AVERAGE_POOL_OPT();
+  #ifdef RISCV
+    return Register_AVERAGE_POOL_OPT();
+  #else
+    return Register_AVERAGE_POOL_REF();
+  #endif
+
 }
 
 TfLiteRegistration* Register_MAX_POOL_2D() {

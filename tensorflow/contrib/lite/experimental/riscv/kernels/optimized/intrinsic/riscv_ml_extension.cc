@@ -15,6 +15,7 @@ limitations under the License.
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/optimized/intrinsic/riscv_ml_extension.h"
 #include <malloc.h>
 
+#ifdef RISCV
 void VectorVectorAdd(const float* input1, const float* input2, float* output,
                      int len, int batch_size) {
   int new_len = len - (len & (kMaxVectorLength32 - 1));
@@ -228,3 +229,4 @@ void VectorAveragePooling(const float* input, float* output, int depth,
     __VectorStorePartialOutput(output + new_depth);
   }
 }
+#endif

@@ -401,6 +401,7 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
       break;
     }
     case kOptimized: {
+      #ifdef RISCV
       // printf("=== Optimized Conv ===\n");
       // tflite::riscv::stats::csr counters_conv_opt;
       // tflite::riscv::stats::StartStats(&counters_conv_opt);
@@ -412,6 +413,7 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
                           GetTensorData<float>(im2col));
       // tflite::riscv::stats::StopStats(&counters_conv_opt);
       // tflite::riscv::stats::PrintStats(&counters_conv_opt);
+      #endif
       break;
     }
   }
@@ -472,7 +474,11 @@ TfLiteRegistration* Register_CONVOLUTION_OPT() {
 }
 
 TfLiteRegistration* Register_CONV_2D() {
-  return Register_CONVOLUTION_OPT();
+  #ifdef RISCV
+    return Register_CONVOLUTION_OPT();
+  #else
+    return Register_CONVOLUTION_REF();
+  #endif
 }
 
 }  // namespace riscv

@@ -33,6 +33,8 @@ limitations under the License.
 namespace tflite {
 namespace optimized_ops {
 
+#ifdef RISCV
+
 inline void AveragePool(const PoolParams& params,
                         const RuntimeShape& input_shape,
                         const float* input_data,
@@ -305,6 +307,7 @@ void Im2col(const ConvParams& params, int kheight, int kwidth, uint8 zero_byte,
   }
 }
 
+#endif // RISCV
 }  // namespace optimized_ops
 }  // namespace tflite
 

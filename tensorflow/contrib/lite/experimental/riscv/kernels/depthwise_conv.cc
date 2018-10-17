@@ -164,7 +164,9 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
   if (kernel_type == kReference) {
     depthwise_conv = &reference_ops::DepthwiseConv;
   } else if(kernel_type == kOptimized){
+    #ifdef RISCV
      depthwise_conv = &optimized_ops::DepthwiseConv;
+    #endif
   }else {
     static_assert("Optimized ops for RISCV not implemented yet.");
   }
@@ -235,7 +237,11 @@ TfLiteRegistration* Register_DEPTHWISE_CONVOLUTION_OPT() {
 }
 
 TfLiteRegistration* Register_DEPTHWISE_CONV_2D() {
-  return Register_DEPTHWISE_CONVOLUTION_OPT();
+  #ifdef RISCV
+    return Register_DEPTHWISE_CONVOLUTION_OPT();
+  #else
+    return Register_DEPTHWISE_CONVOLUTION_REF();
+  #endif
 }
 
 }  // namespace riscv
