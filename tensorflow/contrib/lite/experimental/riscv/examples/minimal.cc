@@ -21,7 +21,7 @@ limitations under the License.
 #include "tensorflow/contrib/lite/profiling/time.h"
 #include "tensorflow/contrib/lite/experimental/riscv/profiling/stats.h"
 
-// Usage: minimal <tflite model>
+// Usage: minimal <tflite model> <num runs>
 
 using namespace tflite;
 
@@ -32,10 +32,18 @@ using namespace tflite;
   }
 
 int main(int argc, char* argv[]) {
-  if(argc != 2) {
-    fprintf(stderr, "minimal <tflite model>\n");
+  int num_times;
+
+  if (argc < 2) {
+    fprintf(stderr, "minimal <tflite model> <num runs> \n");
     return 1;
   }
+  if (argc == 3) {
+    num_times = atoi(argv[2]);
+  } else {
+    num_times = 1;
+  }
+
   const char* filename = argv[1];
 
   // Load model
@@ -66,8 +74,9 @@ int main(int argc, char* argv[]) {
   // TODO(user): Insert code to fill input tensors
 
   // Run inference
-  TFLITE_MINIMAL_CHECK(interpreter->Invoke() == kTfLiteOk);
-
+  for (int run = 0; run < num_times; run++) {
+    TFLITE_MINIMAL_CHECK(interpreter->Invoke() == kTfLiteOk);
+  }
   int64_t end_us = profiling::time::NowMicros();
 
   #ifdef RISCV
