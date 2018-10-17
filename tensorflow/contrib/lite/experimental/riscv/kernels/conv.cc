@@ -23,10 +23,12 @@ limitations under the License.
 #include "tensorflow/contrib/lite/c/builtin_op_data.h"
 #include "tensorflow/contrib/lite/c/c_api_internal.h"
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/reference/conv_float.h"
+#include "tensorflow/contrib/lite/experimental/riscv/kernels/optimized/conv_float.h"
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/kernel_util.h"
 #include "tensorflow/contrib/lite/kernels/internal/tensor.h"
 #include "tensorflow/contrib/lite/kernels/op_macros.h"
 #include "tensorflow/contrib/lite/kernels/padding.h"
+#include "tensorflow/contrib/lite/experimental/riscv/profiling/stats.h"
 
 namespace tflite {
 namespace ops {
@@ -399,7 +401,17 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
       break;
     }
     case kOptimized: {
-        static_assert("Optimized ops for RISCV not implemented yet.");
+      // printf("=== Optimized Conv ===\n");
+      // tflite::riscv::stats::csr counters_conv_opt;
+      // tflite::riscv::stats::StartStats(&counters_conv_opt);
+      optimized_ops::ConvIm2Col(op_params, GetTensorShape(input),
+                          GetTensorData<float>(input), GetTensorShape(filter),
+                          GetTensorData<float>(filter), GetTensorShape(bias),
+                          GetTensorData<float>(bias), GetTensorShape(output),
+                          GetTensorData<float>(output), GetTensorShape(im2col),
+                          GetTensorData<float>(im2col));
+      // tflite::riscv::stats::StopStats(&counters_conv_opt);
+      // tflite::riscv::stats::PrintStats(&counters_conv_opt);
       break;
     }
   }
@@ -460,7 +472,7 @@ TfLiteRegistration* Register_CONVOLUTION_OPT() {
 }
 
 TfLiteRegistration* Register_CONV_2D() {
-  return Register_CONVOLUTION_REF();
+  return Register_CONVOLUTION_OPT();
 }
 
 }  // namespace riscv

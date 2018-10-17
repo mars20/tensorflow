@@ -81,6 +81,8 @@ $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/*.c) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/*.cc) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/reference/*.c) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/reference/*.cc) \
+$(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/optimized/intrinsic/*.c) \
+$(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/optimized/intrinsic/*.cc) \
 $(PROFILER_SRCS)
 
 # Remove any duplicates.

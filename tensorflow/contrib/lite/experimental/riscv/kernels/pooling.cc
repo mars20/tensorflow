@@ -22,10 +22,12 @@ limitations under the License.
 #include "tensorflow/contrib/lite/c/builtin_op_data.h"
 #include "tensorflow/contrib/lite/c/c_api_internal.h"
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/reference/reference_ops_float.h"
+#include "tensorflow/contrib/lite/experimental/riscv/kernels/optimized/optimized_ops_float.h"
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/kernel_util.h"
 #include "tensorflow/contrib/lite/kernels/internal/tensor.h"
 #include "tensorflow/contrib/lite/kernels/op_macros.h"
 #include "tensorflow/contrib/lite/kernels/padding.h"
+#include "tensorflow/contrib/lite/experimental/riscv/profiling/stats.h"
 
 namespace tflite {
 namespace ops {
@@ -128,6 +130,13 @@ void AverageEvalFloat(TfLiteContext* context, TfLiteNode* node,
                     GetTensorData<float>(output))
   if (kernel_type == kReference) {
     TF_LITE_AVERAGE_POOL(reference_ops);
+  } else if(kernel_type == kOptimized) {
+    // printf("=== Optimized Average Pooling ===\n");
+    // tflite::riscv::stats::csr counters_pool;
+    // tflite::riscv::stats::StartStats(&counters_pool);
+    TF_LITE_AVERAGE_POOL(optimized_ops);
+    // tflite::riscv::stats::StopStats(&counters_pool);
+    // tflite::riscv::stats::PrintStats(&counters_pool);
   } else {
     static_assert("Optimized ops for RISCV not implemented yet.");
   }
@@ -292,7 +301,7 @@ TfLiteRegistration* Register_L2_POOL_OPT() {
 }
 
 TfLiteRegistration* Register_AVERAGE_POOL_2D() {
-  return Register_AVERAGE_POOL_REF();
+  return Register_AVERAGE_POOL_OPT();
 }
 
 TfLiteRegistration* Register_MAX_POOL_2D() {

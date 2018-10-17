@@ -22,10 +22,12 @@ limitations under the License.
 #include "tensorflow/contrib/lite/c/builtin_op_data.h"
 #include "tensorflow/contrib/lite/c/c_api_internal.h"
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/reference/depthwiseconv_float.h"
+#include "tensorflow/contrib/lite/experimental/riscv/kernels/optimized/depthwiseconv_float.h"
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/kernel_util.h"
 #include "tensorflow/contrib/lite/kernels/internal/tensor.h"
 #include "tensorflow/contrib/lite/kernels/op_macros.h"
 #include "tensorflow/contrib/lite/kernels/padding.h"
+#include "tensorflow/contrib/lite/experimental/riscv/profiling/stats.h"
 
 namespace tflite {
 namespace ops {
@@ -161,7 +163,9 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
                          float*);
   if (kernel_type == kReference) {
     depthwise_conv = &reference_ops::DepthwiseConv;
-  } else {
+  } else if(kernel_type == kOptimized){
+     depthwise_conv = &optimized_ops::DepthwiseConv;
+  }else {
     static_assert("Optimized ops for RISCV not implemented yet.");
   }
 
@@ -176,10 +180,15 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
   op_params.depth_multiplier = params->depth_multiplier;
   op_params.float_activation_min = output_activation_min;
   op_params.float_activation_max = output_activation_max;
+  // printf("=== Depthwise Conv ===\n");
+  // tflite::riscv::stats::csr counters_depthconv;
+  // tflite::riscv::stats::StartStats(&counters_depthconv);
   depthwise_conv(op_params, GetTensorShape(input), GetTensorData<float>(input),
                  GetTensorShape(filter), GetTensorData<float>(filter),
                  GetTensorShape(bias), GetTensorData<float>(bias),
                  GetTensorShape(output), GetTensorData<float>(output));
+  // tflite::riscv::stats::StopStats(&counters_depthconv);
+  // tflite::riscv::stats::PrintStats(&counters_depthconv);
 }
 
 template <KernelType kernel_type>
@@ -226,7 +235,7 @@ TfLiteRegistration* Register_DEPTHWISE_CONVOLUTION_OPT() {
 }
 
 TfLiteRegistration* Register_DEPTHWISE_CONV_2D() {
-  return Register_DEPTHWISE_CONVOLUTION_REF();
+  return Register_DEPTHWISE_CONVOLUTION_OPT();
 }
 
 }  // namespace riscv
