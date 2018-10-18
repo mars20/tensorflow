@@ -14,10 +14,10 @@ limitations under the License.
 ==============================================================================*/
 #include <cstdarg>
 
-#include "experimental/users/suyoggupta/riscv/kernels/register.h"
-#include "experimental/users/suyoggupta/riscv/kernels/test_util.h"
-#include "third_party/tensorflow/contrib/lite/interpreter.h"
-#include "third_party/tensorflow/contrib/lite/model.h"
+#include "tensorflow/contrib/lite/experimental/riscv/kernels/register.h"
+#include "tensorflow/contrib/lite/experimental/riscv/kernels/test_util.h"
+#include "tensorflow/contrib/lite/interpreter.h"
+#include "tensorflow/contrib/lite/model.h"
 
 namespace tflite {
 namespace depthwiseconv_test {
@@ -151,7 +151,6 @@ void TestDepthwiseConvSimpleDilatedTestPaddingValid() {
   m.Invoke();
 
   // Since the dilation rate is 3 this will reduce the size of the output
-  from
   // 10x10 to 3x3 of all 5s. Specifically:
   // | 5 | 5 | 5 |
   // | 5 | 5 | 5 |
@@ -202,6 +201,6 @@ void TestDepthwiseConvSimpleDilatedTestPaddingSame() {
 
 int main(int argc, char** argv) {
   tflite::depthwiseconv_test::TestDepthwiseConvSimpleTest();
-  // tflite::depthwiseconv_test::TestDepthwiseConvSimpleDilatedTestPaddingValid();
-  // tflite::depthwiseconv_test::TestDepthwiseConvSimpleDilatedTestPaddingSame();
+  tflite::depthwiseconv_test::TestDepthwiseConvSimpleDilatedTestPaddingValid();
+  tflite::depthwiseconv_test::TestDepthwiseConvSimpleDilatedTestPaddingSame();
 }

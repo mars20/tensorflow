@@ -63,6 +63,11 @@ LIB_NAME := libtensorflow-lite.a
 MINIMAL_SRCS := \
 tensorflow/contrib/lite/experimental/riscv/examples/minimal.cc
 
+# Test sources
+TEST_SRCS := \
+$(wildcard tensorflow/contrib/lite/experimental/riscv/*test.cc) \
+$(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/*test.cc)
+
 # What sources we want to compile, must be kept in sync with the main Bazel
 # build files.
 
@@ -83,6 +88,7 @@ $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/reference/*.c) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/reference/*.cc) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/optimized/intrinsic/*.c) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/optimized/intrinsic/*.cc) \
+$(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/test_util.cc) \
 $(PROFILER_SRCS)
 
 # Remove any duplicates.
@@ -111,6 +117,7 @@ include $(wildcard $(MAKEFILE_DIR)/targets/*_makefile.inc)
 
 ALL_SRCS := \
 	$(MINIMAL_SRCS) \
+        $(TEST_SRCS) \
 	$(PROFILER_SRCS) \
 	$(PROFILER_SUMMARY_SRCS) \
 	$(TF_LITE_CC_SRCS)
@@ -124,6 +131,9 @@ LIBDIR := $(GENDIR)lib/
 LIB_PATH := $(LIBDIR)$(LIB_NAME)
 MINIMAL_BINARY := $(BINDIR)minimal
 
+TEST_BINARY := $(addprefix $(BINDIR), \
+$(patsubst %_test.cc,%_test,$(TEST_SRCS)))
+
 CXX := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}g++
 CC := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}gcc
 AR := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}ar
@@ -133,6 +143,9 @@ $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MINIMAL_SRCS))))
 
 LIB_OBJS := $(addprefix $(OBJDIR), \
 $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(TF_LITE_CC_SRCS))))
+
+TEST_OBJS := $(addprefix $(OBJDIR), \
+$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(TEST_SRCS))))
 
 # For normal manually-created TensorFlow C++ source files.
 $(OBJDIR)%.o: %.cc
@@ -145,6 +158,8 @@ $(OBJDIR)%.o: %.c
 
 # The target that's compiled if there's no command-line arguments.
 all: $(LIB_PATH) $(MINIMAL_BINARY)
+
+test: $(LIB_PATH) $(TEST_OBJS) $(TEST_BINARY)
 
 # Hack for generating schema file bypassing flatbuffer parsing
 tensorflow/contrib/lite/schema/schema_generated.h:
@@ -159,6 +174,12 @@ $(MINIMAL_BINARY): $(MINIMAL_OBJS) $(LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
 	-o $(MINIMAL_BINARY) $(MINIMAL_OBJS) \
+	$(LIBFLAGS) $(LIB_PATH) $(LDFLAGS) $(LIBS)
+
+$(TEST_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) \
+	-o $@ $^ \
 	$(LIBFLAGS) $(LIB_PATH) $(LDFLAGS) $(LIBS)
 
 # Gets rid of all generated files.
