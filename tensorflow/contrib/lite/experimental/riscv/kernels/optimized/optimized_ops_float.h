@@ -54,7 +54,7 @@ inline void AveragePool(const PoolParams& params,
   const Dims<4>& output_dims = ToRuntimeDims(output_shape);
 
   bool use_zero = false;
-  for (int batch = 0; batch < batches; ++batch) {
+   for (int batch = 0; batch < batches; ++batch) {
     for (int out_y = 0; out_y < output_height; ++out_y) {
       for (int out_x = 0; out_x < output_width; ++out_x) {
         const int in_x_origin =
@@ -70,6 +70,10 @@ inline void AveragePool(const PoolParams& params,
         const int filter_y_end =
             std::min(params.filter_height, input_height - in_y_origin);
         float filter_count = 0;
+        // for (int channel = 0; channel < depth; channel++) {
+        //   output_data[Offset(output_shape, batch, out_y, out_x, channel)] =
+        //   0.0;
+        // }
         use_zero = true;
         for (int filter_y = filter_y_start; filter_y < filter_y_end;
              ++filter_y) {
@@ -80,7 +84,7 @@ inline void AveragePool(const PoolParams& params,
             const float* input_address =
                 &input_data[Offset(input_dims, 0, in_x, in_y, batch)];
             float* output_address =
-                &output_data[Offset(output_dims, 0, out_y, out_x, batch)];
+                &output_data[Offset(output_dims, 0, out_x, out_y, batch)];
             VectorAveragePooling(input_address, output_address, depth,
                                  use_zero);
             filter_count++;
@@ -89,9 +93,9 @@ inline void AveragePool(const PoolParams& params,
         }
         for (int channel = 0; channel < depth; channel++) {
           const float average =
-              output_data[Offset(output_dims, channel, out_y, out_x, batch)] /
+              output_data[Offset(output_dims, channel, out_x, out_y, batch)] /
               filter_count;
-          output_data[Offset(output_dims, channel, out_y, out_x, batch)] =
+          output_data[Offset(output_dims, channel, out_x, out_y, channel)] =
               ActivationFunctionWithMinMax(average, params.float_activation_min,
                                            params.float_activation_max);
         }

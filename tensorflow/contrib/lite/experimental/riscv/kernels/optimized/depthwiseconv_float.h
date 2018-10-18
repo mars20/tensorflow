@@ -80,16 +80,19 @@ inline void DepthwiseConv(
              ++filter_y) {
           for (int filter_x = filter_x_start; filter_x < filter_x_end;
                ++filter_x) {
-            const int in_x = in_x_origin + filter_x;
-            const int in_y = in_y_origin + filter_y;
-            const float* input_address =
-                &input_data[Offset(input_dims, 0, in_x, in_y, b)];
-            const float* filter_address =
-                &filter_data[Offset(filter_dims, 0, filter_x, filter_y, 0)];
-            VectorVectorMultiplyAccumulateDepthwise(
-                input_address, filter_address, output_address, input_depth,
-                depth_multiplier, bias_data, use_bias_first);
-            use_bias_first = false;
+            const int in_x = in_x_origin + dilation_width_factor *  filter_x;
+            const int in_y = in_y_origin + dilation_height_factor * filter_y;
+            if ((in_x >= 0) && (in_x < input_width) && (in_y >= 0) &&
+                    (in_y < input_height)) {
+              const float* input_address =
+                  &input_data[Offset(input_dims, 0, in_x, in_y, b)];
+              const float* filter_address =
+                  &filter_data[Offset(filter_dims, 0, filter_x, filter_y, 0)];
+              VectorVectorMultiplyAccumulateDepthwise(
+                  input_address, filter_address, output_address, input_depth,
+                  depth_multiplier, bias_data, use_bias_first);
+              use_bias_first = false;
+            }
           }
         }
          VectorActivationFunctionWithMinMax(output_address, output_activation_min, output_activation_max, output_depth);
