@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
   printf("=== Run started ===\n");
   int64_t start_us = profiling::time::NowMicros();
-  #ifdef RISCV
+  #ifdef PROF_RISCV
   tflite::riscv::stats::csr counters;
   tflite::riscv::stats::StartStats(&counters);  // enable csr counters
   #endif
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
   }
   int64_t end_us = profiling::time::NowMicros();
 
-  #ifdef RISCV
+  #ifdef PROF_RISCV
   tflite::riscv::stats::StopStats(&counters);    // disable csr counters
   tflite::riscv::stats::PrintStats(&counters);
   #endif

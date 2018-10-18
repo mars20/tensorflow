@@ -2,5 +2,5 @@
 ifeq ($(TARGET), riscv64EXT)
   TARGET_ARCH := riscv64EXT
   TARGET_TOOLCHAIN_PREFIX := riscv64-unknown-elf-
-  CXXFLAGS += -march=rv64gv -DRISCV 
+  CXXFLAGS += -march=rv64gv -DRISCV -DPROF_RISCV
 endif
