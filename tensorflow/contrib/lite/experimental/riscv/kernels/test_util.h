@@ -210,6 +210,20 @@ class SingleOpModel {
   }
 
   // Populate the tensor given its index.
+
+  template <typename T>
+  void PopulateTensorRandom(int index, const std::vector<int>& sizes,
+                     const std::function<T()>& random_func) {
+    T* v = interpreter_->typed_tensor<T>(index);
+    int num_elements = 1;
+    for (int dim : sizes) {
+      num_elements *= dim;
+    }
+    for (int i = 0; i < num_elements; ++i) {
+      *v++ = random_func();
+    }
+  }
+
   // TODO(b/110696148) clean up and merge with initializer_list-taking variant
   // above.
   template <typename T>

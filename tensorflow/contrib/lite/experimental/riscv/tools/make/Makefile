@@ -68,6 +68,10 @@ TEST_SRCS := \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/*test.cc) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/*test.cc)
 
+# Test sources
+BENCHMARK_SRCS := \
+$(wildcard tensorflow/contrib/lite/experimental/riscv/benchmark/*/*.cc)
+
 # What sources we want to compile, must be kept in sync with the main Bazel
 # build files.
 
@@ -134,6 +138,9 @@ MINIMAL_BINARY := $(BINDIR)minimal
 TEST_BINARY := $(addprefix $(BINDIR), \
 $(patsubst %_test.cc,%_test,$(TEST_SRCS)))
 
+BENCHMARK_BINARY := $(addprefix $(BINDIR), \
+$(patsubst %.cc,%,$(BENCHMARK_SRCS)))
+
 CXX := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}g++
 CC := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}gcc
 AR := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}ar
@@ -146,6 +153,9 @@ $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(TF_LITE_CC_SRCS))))
 
 TEST_OBJS := $(addprefix $(OBJDIR), \
 $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(TEST_SRCS))))
+
+BENCHMARK_OBJS := $(addprefix $(OBJDIR), \
+$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(BENCHMARK_SRCS))))
 
 # For normal manually-created TensorFlow C++ source files.
 $(OBJDIR)%.o: %.cc
@@ -160,6 +170,8 @@ $(OBJDIR)%.o: %.c
 all: $(LIB_PATH) $(MINIMAL_BINARY)
 
 test: $(LIB_PATH) $(TEST_OBJS) $(TEST_BINARY)
+
+benchmark: $(LIB_PATH) $(BENCHMARK_BINARY)
 
 # Hack for generating schema file bypassing flatbuffer parsing
 tensorflow/contrib/lite/schema/schema_generated.h:
@@ -177,6 +189,13 @@ $(MINIMAL_BINARY): $(MINIMAL_OBJS) $(LIB_PATH)
 	$(LIBFLAGS) $(LIB_PATH) $(LDFLAGS) $(LIBS)
 
 $(TEST_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) \
+	-o $@ $^ \
+	$(LIBFLAGS) $(LIB_PATH) $(LDFLAGS) $(LIBS)
+
+
+$(BENCHMARK_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
 	-o $@ $^ \
