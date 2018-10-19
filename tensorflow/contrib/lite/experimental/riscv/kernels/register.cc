@@ -43,6 +43,9 @@ TfLiteRegistration* Register_L2_POOL_2D();
 TfLiteRegistration* Register_RESHAPE();
 TfLiteRegistration* Register_SQUEEZE();
 
+TfLiteRegistration* Register_LSTM();
+
+
 const TfLiteRegistration* RiscvOpResolver::FindOp(tflite::BuiltinOperator op,
                                                     int version) const {
   return MutableOpResolver::FindOp(op, version);
@@ -68,6 +71,8 @@ RiscvOpResolver::RiscvOpResolver() {
   AddBuiltin(BuiltinOperator_L2_POOL_2D, Register_L2_POOL_2D());
   AddBuiltin(BuiltinOperator_RESHAPE, Register_RESHAPE());
   AddBuiltin(BuiltinOperator_SQUEEZE, Register_SQUEEZE());
+  AddBuiltin(BuiltinOperator_LSTM, Register_LSTM());
+
 }
 
 }  // namespace riscv

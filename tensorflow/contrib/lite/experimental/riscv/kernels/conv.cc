@@ -35,7 +35,7 @@ namespace ops {
 namespace riscv {
 namespace conv {
 
-// This file has 4 implementation of Conv.
+// This file has 2 implementation of Conv.
 enum KernelType {
   kReference,
   kOptimized,  // Neon-free

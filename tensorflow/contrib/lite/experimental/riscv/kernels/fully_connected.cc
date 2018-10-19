@@ -24,7 +24,6 @@ limitations under the License.
 #include "tensorflow/contrib/lite/c/c_api_internal.h"
 #include "tensorflow/contrib/lite/kernels/activation_functor.h"
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/reference/fully_connected_float.h"
-#include "tensorflow/contrib/lite/experimental/riscv/kernels/reference/portable_tensor_utils.h"
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/kernel_util.h"
 #include "tensorflow/contrib/lite/kernels/internal/tensor.h"
 #include "tensorflow/contrib/lite/kernels/op_macros.h"
