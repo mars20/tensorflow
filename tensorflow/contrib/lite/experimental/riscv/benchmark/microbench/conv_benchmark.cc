@@ -82,13 +82,13 @@ class ConvolutionOpModel : public BaseConvolutionOpModel {
   std::vector<float> GetOutput() { return ExtractVector<float>(output_); }
 };
 
-void ConvBenchmarkFloat32(int matrix_size, int num_runs) {
-  const int depth = matrix_size;
+void ConvBenchmarkFloat32InputWidthHeight(int matrix_size, int num_runs) {
+  const int depth = 8;
   const int image_width = matrix_size;
-  const int image_height = 3;
+  const int image_height = matrix_size;
   const int image_batch_count = 1;
-  const int filter_size = 5;
-  const int filter_count = 3;
+  const int filter_size = 3;
+  const int filter_count = 16;
   const int stride_width = 1;
   const int stride_height = 1;
   const Padding padding = Padding_SAME;
@@ -121,6 +121,47 @@ void ConvBenchmarkFloat32(int matrix_size, int num_runs) {
   tflite::riscv::stats::PrintStats(&counters);
   #endif
 }
+
+void ConvBenchmarkFloat32InputDepth(int matrix_size, int num_runs) {
+  const int depth = matrix_size;
+  const int image_width = 32;
+  const int image_height = 32;
+  const int image_batch_count = 1;
+  const int filter_size = 3;
+  const int filter_count = 16;
+  const int stride_width = 1;
+  const int stride_height = 1;
+  const Padding padding = Padding_SAME;
+
+  std::vector<int> input_dims = {image_batch_count, image_height, image_width, depth};
+  std::vector<int> filter_dims =  {filter_count, filter_size, filter_size, depth};
+  std::vector<int> bias_dims =  {filter_count, 1,1,1};
+
+  ConvolutionOpModel m(
+      {TensorType_FLOAT32,
+       {image_batch_count, image_height, image_width, depth}},
+      {TensorType_FLOAT32, {filter_count, filter_size, filter_size, depth}},
+      {TensorType_FLOAT32, {}}, stride_width, stride_height, padding);
+
+  m.SetInput(input_dims);
+  m.SetFilter(filter_dims);
+  m.SetBias(bias_dims);
+
+  #ifdef PROF_RISCV
+  tflite::riscv::stats::csr counters;
+  tflite::riscv::stats::StartStats(&counters);  // enable csr counters
+  #endif
+
+  for(int i = 0; i < num_runs; i++){
+    m.Invoke();
+  }
+
+  #ifdef PROF_RISCV
+  tflite::riscv::stats::StopStats(&counters);    // disable csr counters
+  tflite::riscv::stats::PrintStats(&counters);
+  #endif
+}
+
 }  // namespace benchmark_conv
 }  // namespace tflite
 
@@ -133,5 +174,6 @@ int main(int argc, char** argv) {
   }
   int matix_size = atoi(argv[1]);
   int num_runs = atoi(argv[2]);
-  tflite::benchmark_conv::ConvBenchmarkFloat32(matix_size, num_runs);
+  tflite::benchmark_conv::ConvBenchmarkFloat32InputWidthHeight(matix_size, num_runs);
+  tflite::benchmark_conv::ConvBenchmarkFloat32InputDepth(matix_size, num_runs);
 }

@@ -87,13 +87,13 @@ class DepthwiseConvolutionOpModel : public BaseDepthwiseConvolutionOpModel {
   std::vector<float> GetOutput() { return ExtractVector<float>(output_); }
 };
 
-void DepthwiseConvBenchmarkFloat32(int matrix_size, int num_runs) {
-  const int depth = matrix_size;
+void DepthwiseConvBenchmarkFloat32InputWidthHeight(int matrix_size, int num_runs) {
+  const int depth = 8;
   const int image_width = matrix_size;
-  const int image_height = 3;
+  const int image_height = matrix_size;
   const int image_batch_count = 1;
-  const int filter_size = 5;
-  const int filter_count = 3;
+  const int filter_size = 3;
+  const int filter_count = 1;
   const Padding padding = Padding_SAME;
   const int dilation_factor = 3;
   DepthwiseConvolutionOpModel m(
@@ -104,7 +104,44 @@ void DepthwiseConvBenchmarkFloat32(int matrix_size, int num_runs) {
 
   std::vector<int> input_dims = {image_batch_count, image_height, image_width, depth};
   std::vector<int> filter_dims =  {filter_count, filter_size, filter_size, depth};
-  std::vector<int> bias_dims =  {filter_count, 1,1,1};
+  std::vector<int> bias_dims =  {depth, 1,1,1};
+
+  m.SetInput(input_dims);
+  m.SetFilter(filter_dims);
+  m.SetBias(bias_dims);
+
+  #ifdef PROF_RISCV
+  tflite::riscv::stats::csr counters;
+  tflite::riscv::stats::StartStats(&counters);  // enable csr counters
+  #endif
+
+  for(int i = 0; i < num_runs; i++){
+    m.Invoke();
+  }
+  #ifdef PROF_RISCV
+  tflite::riscv::stats::StopStats(&counters);    // disable csr counters
+  tflite::riscv::stats::PrintStats(&counters);
+  #endif
+}
+
+void DepthwiseConvBenchmarkFloat32InputDepth(int matrix_size, int num_runs) {
+  const int depth = matrix_size;
+  const int image_width = 32;
+  const int image_height = 32;
+  const int image_batch_count = 1;
+  const int filter_size = 3;
+  const int filter_count = 1;
+  const Padding padding = Padding_SAME;
+  const int dilation_factor = 1;
+  DepthwiseConvolutionOpModel m(
+      {TensorType_FLOAT32,
+       {image_batch_count, image_height, image_width, depth}},
+      {TensorType_FLOAT32, {filter_count, filter_size, filter_size, depth}},
+      {TensorType_FLOAT32, {}}, Padding_SAME, dilation_factor);
+
+  std::vector<int> input_dims = {image_batch_count, image_height, image_width, depth};
+  std::vector<int> filter_dims =  {filter_count, filter_size, filter_size, depth};
+  std::vector<int> bias_dims =  {depth, 1,1,1};
 
   m.SetInput(input_dims);
   m.SetFilter(filter_dims);
@@ -133,5 +170,6 @@ int main(int argc, char** argv) {
   }
   int matix_size = atoi(argv[1]);
   int num_runs = atoi(argv[2]);
-  tflite::benchmark_depthwiseconv::DepthwiseConvBenchmarkFloat32(matix_size, num_runs);
+  tflite::benchmark_depthwiseconv::DepthwiseConvBenchmarkFloat32InputWidthHeight(matix_size, num_runs);
+  tflite::benchmark_depthwiseconv::DepthwiseConvBenchmarkFloat32InputDepth(matix_size, num_runs);
 }
