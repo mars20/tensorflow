@@ -93,18 +93,18 @@ void DepthwiseConvBenchmarkFloat32InputWidthHeight(int matrix_size, int num_runs
   const int image_height = matrix_size;
   const int image_batch_count = 1;
   const int filter_size = 3;
-  const int filter_count = 1;
+  const int filter_count = 16;
   const Padding padding = Padding_SAME;
   const int dilation_factor = 3;
   DepthwiseConvolutionOpModel m(
       {TensorType_FLOAT32,
        {image_batch_count, image_height, image_width, depth}},
-      {TensorType_FLOAT32, {filter_count, filter_size, filter_size, depth}},
+      {TensorType_FLOAT32, {depth, filter_size, filter_size, filter_count}},
       {TensorType_FLOAT32, {}}, Padding_SAME, dilation_factor);
 
   std::vector<int> input_dims = {image_batch_count, image_height, image_width, depth};
-  std::vector<int> filter_dims =  {filter_count, filter_size, filter_size, depth};
-  std::vector<int> bias_dims =  {depth, 1,1,1};
+  std::vector<int> filter_dims =  {depth, filter_size, filter_size, filter_count};
+  std::vector<int> bias_dims =  {filter_count, 1,1,1};
 
   m.SetInput(input_dims);
   m.SetFilter(filter_dims);
@@ -130,18 +130,18 @@ void DepthwiseConvBenchmarkFloat32InputDepth(int matrix_size, int num_runs) {
   const int image_height = 32;
   const int image_batch_count = 1;
   const int filter_size = 3;
-  const int filter_count = 1;
+  const int filter_count = matrix_size;
   const Padding padding = Padding_SAME;
   const int dilation_factor = 1;
   DepthwiseConvolutionOpModel m(
       {TensorType_FLOAT32,
        {image_batch_count, image_height, image_width, depth}},
-      {TensorType_FLOAT32, {filter_count, filter_size, filter_size, depth}},
+      {TensorType_FLOAT32, {depth, filter_size, filter_size, filter_count}},
       {TensorType_FLOAT32, {}}, Padding_SAME, dilation_factor);
 
   std::vector<int> input_dims = {image_batch_count, image_height, image_width, depth};
-  std::vector<int> filter_dims =  {filter_count, filter_size, filter_size, depth};
-  std::vector<int> bias_dims =  {depth, 1,1,1};
+  std::vector<int> filter_dims = {depth, filter_size, filter_size, filter_count};
+  std::vector<int> bias_dims =  {filter_count, 1,1,1};
 
   m.SetInput(input_dims);
   m.SetFilter(filter_dims);
