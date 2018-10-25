@@ -76,9 +76,9 @@ inline void DepthwiseConv(
         }
         float* output_address =
                 &output_data[Offset(output_dims, 0, out_x, out_y, b)];
-        for (int filter_y = filter_y_start; filter_y < filter_y_end;
+        for (int filter_y = 0; filter_y < filter_height;
              ++filter_y) {
-          for (int filter_x = filter_x_start; filter_x < filter_x_end;
+          for (int filter_x = 0; filter_x < filter_width;
                ++filter_x) {
             const int in_x = in_x_origin + dilation_width_factor *  filter_x;
             const int in_y = in_y_origin + dilation_height_factor * filter_y;
@@ -95,7 +95,7 @@ inline void DepthwiseConv(
             }
           }
         }
-         VectorActivationFunctionWithMinMax(output_address, output_activation_min, output_activation_max, output_depth);
+        VectorActivationFunctionWithMinMax(output_address, output_activation_min, output_activation_max, output_depth);
       }
     }
   }
