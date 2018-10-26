@@ -14,11 +14,19 @@ limitations under the License.
 ==============================================================================*/
 #include <cstdarg>
 
+#ifdef PROF_RISCV
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/register.h"
+#else
+#include "tensorflow/contrib/lite/kernels/register.h"
+#endif
+
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/test_util.h"
 #include "tensorflow/contrib/lite/interpreter.h"
 #include "tensorflow/contrib/lite/model.h"
+
+#ifdef PROF_RISCV
 #include "tensorflow/contrib/lite/experimental/riscv/profiling/stats.h"
+#endif
 
 namespace tflite {
 namespace benchmark_depthwiseconv {

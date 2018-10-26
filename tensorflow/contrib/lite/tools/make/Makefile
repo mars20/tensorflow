@@ -72,6 +72,11 @@ BENCHMARK_BINARY_NAME := benchmark_model
 MINIMAL_SRCS := \
 tensorflow/contrib/lite/examples/minimal/minimal.cc
 
+
+# Micro benchmarks sources
+MICROBENCHMARK_SRCS := \
+$(wildcard tensorflow/contrib/lite/experimental/riscv/benchmark/microbench/*.cc)
+
 # What sources we want to compile, must be kept in sync with the main Bazel
 # build files.
 
@@ -92,6 +97,7 @@ $(wildcard tensorflow/contrib/lite/kernels/*.cc) \
 $(wildcard tensorflow/contrib/lite/kernels/internal/*.cc) \
 $(wildcard tensorflow/contrib/lite/kernels/internal/optimized/*.cc) \
 $(wildcard tensorflow/contrib/lite/kernels/internal/reference/*.cc) \
+$(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/test_util.cc) \
 $(PROFILER_SRCS) \
 $(wildcard tensorflow/contrib/lite/kernels/*.c) \
 $(wildcard tensorflow/contrib/lite/kernels/internal/*.c) \
@@ -151,6 +157,9 @@ BENCHMARK_LIB := $(LIBDIR)$(BENCHMARK_LIB_NAME)
 BENCHMARK_BINARY := $(BINDIR)$(BENCHMARK_BINARY_NAME)
 MINIMAL_BINARY := $(BINDIR)minimal
 
+MICROBENCHMARK_BINARY := $(addprefix $(BINDIR), \
+$(patsubst %.cc,%,$(MICROBENCHMARK_SRCS)))
+
 CXX := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}g++
 CC := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}gcc
 AR := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}ar
@@ -164,6 +173,10 @@ $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(TF_LITE_CC_SRCS))))
 BENCHMARK_OBJS := $(addprefix $(OBJDIR), \
 $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(BENCHMARK_SRCS))))
 
+MICROBENCHMARK_OBJS := $(addprefix $(OBJDIR), \
+$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROBENCHMARK_SRCS))))
+
+
 # For normal manually-created TensorFlow C++ source files.
 $(OBJDIR)%.o: %.cc
 	@mkdir -p $(dir $@)
@@ -174,7 +187,7 @@ $(OBJDIR)%.o: %.c
 	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
 
 # The target that's compiled if there's no command-line arguments.
-all: $(LIB_PATH)  $(MINIMAL_BINARY) $(BENCHMARK_BINARY)
+all: $(LIB_PATH) $(MINIMAL_BINARY) $(MICROBENCHMARK_BINARY)
 
 # The target that's compiled for micro-controllers
 micro: $(LIB_PATH)
@@ -206,7 +219,15 @@ $(BENCHMARK_BINARY) : $(BENCHMARK_LIB)
 	-o $(BENCHMARK_BINARY) \
 	$(LIBFLAGS) $(BENCHMARK_LIB) $(LDFLAGS) $(LIBS)
 
+$(MICROBENCHMARK_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) \
+	-o $@ $^ \
+	$(LIBFLAGS) $(LIB_PATH) $(LDFLAGS) $(LIBS)
+
 benchmark: $(BENCHMARK_BINARY)
+
+microbenchmark: $(LIB_PATH) $(MICROBENCHMARK_BINARY)
 
 # Gets rid of all generated files.
 clean:

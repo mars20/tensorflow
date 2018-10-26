@@ -103,7 +103,11 @@ void SingleOpModel::BuildInterpreter(
   auto* model = GetModel(builder_.GetBufferPointer());
 
   if (!resolver_) {
+  #ifdef PROF_RISCV
     auto resolver = new ops::riscv::RiscvOpResolver();
+  #else
+    auto resolver = new ops::builtin::BuiltinOpResolver();
+  #endif
     for (const auto& reg : custom_registrations_) {
       resolver->AddCustom(reg.first.data(), reg.second());
     }
