@@ -17,7 +17,7 @@ limitations under the License.
 
 #include <map>
 #include <vector>
-#ifdef PROF_RISCV
+#ifndef USE_NEON
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/register.h"
 #else
 #include "tensorflow/contrib/lite/kernels/register.h"

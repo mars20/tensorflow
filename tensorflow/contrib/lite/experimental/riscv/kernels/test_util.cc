@@ -103,7 +103,7 @@ void SingleOpModel::BuildInterpreter(
   auto* model = GetModel(builder_.GetBufferPointer());
 
   if (!resolver_) {
-  #ifdef PROF_RISCV
+  #ifndef USE_NEON
     auto resolver = new ops::riscv::RiscvOpResolver();
   #else
     auto resolver = new ops::builtin::BuiltinOpResolver();
