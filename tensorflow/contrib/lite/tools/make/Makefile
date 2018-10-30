@@ -44,9 +44,7 @@ INCLUDES += -I/usr/local/include
 # overridden by the platform-specific settings in target makefiles.
 LIBS := \
 -lstdc++ \
--lpthread \
--lm \
--lz
+-lm
 
 # There are no rules for compiling objects for the host system (since we don't
 # generate things like the protobuf compiler that require that), so all of
@@ -72,6 +70,8 @@ BENCHMARK_BINARY_NAME := benchmark_model
 MINIMAL_SRCS := \
 tensorflow/contrib/lite/examples/minimal/minimal.cc
 
+GEM5_SRCS := \
+tensorflow/contrib/lite/examples/minimal/m5op_arm_A64.S
 
 # Micro benchmarks sources
 MICROBENCHMARK_SRCS := \
@@ -120,6 +120,9 @@ CORE_CC_EXCLUDE_SRCS += \
 tensorflow/contrib/lite/mmap_allocation.cc \
 tensorflow/contrib/lite/nnapi_delegate.cc
 endif
+CORE_CC_EXCLUDE_SRCS += \
+tensorflow/contrib/lite/nnapi_delegate.cc
+
 # Filter out all the excluded files.
 TF_LITE_CC_SRCS := $(filter-out $(CORE_CC_EXCLUDE_SRCS), $(CORE_CC_ALL_SRCS))
 
@@ -176,6 +179,8 @@ $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(BENCHMARK_SRCS))))
 MICROBENCHMARK_OBJS := $(addprefix $(OBJDIR), \
 $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROBENCHMARK_SRCS))))
 
+GEM5_OBJ := $(addprefix $(OBJDIR), \
+$(patsubst %.S,%.o, $(GEM5_SRCS)))
 
 # For normal manually-created TensorFlow C++ source files.
 $(OBJDIR)%.o: %.cc
@@ -186,11 +191,17 @@ $(OBJDIR)%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
 
+# For normal manually-created ASM source files.
+$(OBJDIR)%.o: %.S
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
 # The target that's compiled if there's no command-line arguments.
 all: $(LIB_PATH) $(MINIMAL_BINARY) $(MICROBENCHMARK_BINARY)
 
 # The target that's compiled for micro-controllers
 micro: $(LIB_PATH)
+
+minimal: $(LIB_PATH) $(MINIMAL_BINARY)
 
 # Hack for generating schema file bypassing flatbuffer parsing
 tensorflow/contrib/lite/schema/schema_generated.h:
@@ -201,10 +212,10 @@ $(LIB_PATH): tensorflow/contrib/lite/schema/schema_generated.h $(LIB_OBJS)
 	@mkdir -p $(dir $@)
 	$(AR) $(ARFLAGS) $(LIB_PATH) $(LIB_OBJS)
 
-$(MINIMAL_BINARY): $(MINIMAL_OBJS) $(LIB_PATH)
+$(MINIMAL_BINARY): $(MINIMAL_OBJS) $(GEM5_OBJ) $(LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
-	-o $(MINIMAL_BINARY) $(MINIMAL_OBJS) \
+	-o $(MINIMAL_BINARY) $(MINIMAL_OBJS) $(GEM5_OBJ) \
 	$(LIBFLAGS) $(LIB_PATH) $(LDFLAGS) $(LIBS)
 
 $(BENCHMARK_LIB) : $(LIB_PATH) $(BENCHMARK_OBJS)
@@ -219,7 +230,7 @@ $(BENCHMARK_BINARY) : $(BENCHMARK_LIB)
 	-o $(BENCHMARK_BINARY) \
 	$(LIBFLAGS) $(BENCHMARK_LIB) $(LDFLAGS) $(LIBS)
 
-$(MICROBENCHMARK_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
+$(MICROBENCHMARK_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(GEM5_OBJ) $(LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
 	-o $@ $^ \

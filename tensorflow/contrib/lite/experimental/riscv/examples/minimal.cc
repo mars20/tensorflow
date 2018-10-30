@@ -22,7 +22,12 @@ limitations under the License.
 #include "tensorflow/contrib/lite/experimental/riscv/profiling/stats.h"
 
 // Usage: minimal <tflite model> <num runs>
-
+#ifdef ARM_GEM5
+extern "C" void m5_checkpoint(int a, int b);
+extern "C" void m5_reset_stats(int a, int b);
+extern "C" void m5_dump_stats (int a, int b);
+extern "C" void m5_exit (int a);
+#endif
 using namespace tflite;
 
 #define TFLITE_MINIMAL_CHECK(x)                              \
@@ -74,15 +79,22 @@ int main(int argc, char* argv[]) {
   // TODO(user): Insert code to fill input tensors
 
   // Run inference
+  #ifdef ARM_GEM5
+  m5_reset_stats(0,0);
+  #endif
+
   for (int run = 0; run < num_times; run++) {
     TFLITE_MINIMAL_CHECK(interpreter->Invoke() == kTfLiteOk);
   }
-  int64_t end_us = profiling::time::NowMicros();
+  #ifdef ARM_GEM5
+   m5_dump_stats(0, 0);
+  #endif
 
   #ifdef PROF_RISCV
   tflite::riscv::stats::StopStats(&counters);    // disable csr counters
   tflite::riscv::stats::PrintStats(&counters);
   #endif
+  int64_t end_us = profiling::time::NowMicros();
 
   printf("\nInference time = %d us\n", end_us - start_us);
   printf("=== Run complete ===\n");

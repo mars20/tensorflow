@@ -63,6 +63,9 @@ LIB_NAME := libtensorflow-lite.a
 MINIMAL_SRCS := \
 tensorflow/contrib/lite/experimental/riscv/examples/minimal.cc
 
+GEM5_SRCS := \
+tensorflow/contrib/lite/examples/minimal/m5op_arm_A64.S
+
 # Test sources
 TEST_SRCS := \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/*test.cc) \
@@ -93,6 +96,7 @@ $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/reference/*.cc) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/optimized/intrinsic/*.c) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/optimized/intrinsic/*.cc) \
 $(wildcard tensorflow/contrib/lite/experimental/riscv/kernels/test_util.cc) \
+$(wildcard tensorflow/contrib/lite/kernels/internal/test_util.cc) \
 $(PROFILER_SRCS)
 
 # Remove any duplicates.
@@ -157,6 +161,9 @@ $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(TEST_SRCS))))
 BENCHMARK_OBJS := $(addprefix $(OBJDIR), \
 $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(BENCHMARK_SRCS))))
 
+GEM5_OBJ := $(addprefix $(OBJDIR), \
+$(patsubst %.S,%.o, $(GEM5_SRCS)))
+
 # For normal manually-created TensorFlow C++ source files.
 $(OBJDIR)%.o: %.cc
 	@mkdir -p $(dir $@)
@@ -165,7 +172,10 @@ $(OBJDIR)%.o: %.cc
 $(OBJDIR)%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
-
+# For normal manually-created TensorFlow ASM source files.
+$(OBJDIR)%.o: %.S
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
 # The target that's compiled if there's no command-line arguments.
 all: $(LIB_PATH) $(MINIMAL_BINARY)
 
@@ -182,10 +192,10 @@ $(LIB_PATH): tensorflow/contrib/lite/schema/schema_generated.h $(LIB_OBJS)
 	@mkdir -p $(dir $@)
 	$(AR) $(ARFLAGS) $(LIB_PATH) $(LIB_OBJS)
 
-$(MINIMAL_BINARY): $(MINIMAL_OBJS) $(LIB_PATH)
+$(MINIMAL_BINARY): $(MINIMAL_OBJS) $(GEM5_OBJ) $(LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
-	-o $(MINIMAL_BINARY) $(MINIMAL_OBJS) \
+	-o $(MINIMAL_BINARY) $(MINIMAL_OBJS) $(GEM5_OBJ) \
 	$(LIBFLAGS) $(LIB_PATH) $(LDFLAGS) $(LIBS)
 
 $(TEST_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
@@ -195,7 +205,7 @@ $(TEST_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
 	$(LIBFLAGS) $(LIB_PATH) $(LDFLAGS) $(LIBS)
 
 
-$(BENCHMARK_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
+$(BENCHMARK_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(GEM5_OBJ) $(LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
 	-o $@ $^ \

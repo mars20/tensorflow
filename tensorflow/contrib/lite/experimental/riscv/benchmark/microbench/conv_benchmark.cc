@@ -15,7 +15,7 @@ limitations under the License.
 #include <cstdarg>
 #include <cstdlib>
 
-#ifdef PROF_RISCV
+#ifndef USE_NEON
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/register.h"
 #else
 #include "tensorflow/contrib/lite/kernels/register.h"
@@ -27,6 +27,13 @@ limitations under the License.
 
 #ifdef PROF_RISCV
 #include "tensorflow/contrib/lite/experimental/riscv/profiling/stats.h"
+#endif
+
+#ifdef ARM_GEM5
+extern "C" void m5_checkpoint(int a, int b);
+extern "C" void m5_reset_stats(int a, int b);
+extern "C" void m5_dump_stats (int a, int b);
+extern "C" void m5_exit (int a);
 #endif
 
 namespace tflite {
@@ -119,10 +126,16 @@ void ConvBenchmarkFloat32InputWidthHeight(int matrix_size, int num_runs) {
   tflite::riscv::stats::csr counters;
   tflite::riscv::stats::StartStats(&counters);  // enable csr counters
   #endif
+  #ifdef ARM_GEM5
+  m5_reset_stats(0,0);
+  #endif
 
   for(int i = 0; i < num_runs; i++){
     m.Invoke();
   }
+  #ifdef ARM_GEM5
+  m5_dump_stats(0, 0);
+  #endif
 
   #ifdef PROF_RISCV
   tflite::riscv::stats::StopStats(&counters);    // disable csr counters
@@ -159,15 +172,22 @@ void ConvBenchmarkFloat32InputDepth(int matrix_size, int num_runs) {
   tflite::riscv::stats::csr counters;
   tflite::riscv::stats::StartStats(&counters);  // enable csr counters
   #endif
+  #ifdef ARM_GEM5
+  m5_reset_stats(0,0);
+  #endif
 
   for(int i = 0; i < num_runs; i++){
     m.Invoke();
   }
+  #ifdef ARM_GEM5
+  m5_dump_stats(0, 0);
+  #endif
 
   #ifdef PROF_RISCV
   tflite::riscv::stats::StopStats(&counters);    // disable csr counters
   tflite::riscv::stats::PrintStats(&counters);
   #endif
+
 }
 
 }  // namespace benchmark_conv

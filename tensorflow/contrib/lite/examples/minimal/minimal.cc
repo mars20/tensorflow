@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,6 +28,11 @@ limitations under the License.
 //
 // Usage: minimal <tflite model>
 
+extern "C" void m5_checkpoint(int a, int b);
+extern "C" void m5_reset_stats(int a, int b);
+extern "C" void m5_dump_stats (int a, int b);
+extern "C" void m5_exit (int a);
+
 using namespace tflite;
 
 #define TFLITE_MINIMAL_CHECK(x)                              \
@@ -37,10 +42,18 @@ using namespace tflite;
   }
 
 int main(int argc, char* argv[]) {
-  if(argc != 2) {
-    fprintf(stderr, "minimal <tflite model>\n");
+  int num_times;
+
+  if (argc < 2) {
+    fprintf(stderr, "minimal <tflite model> <num runs> \n");
     return 1;
   }
+  if (argc == 3) {
+    num_times = atoi(argv[2]);
+  } else {
+    num_times = 1;
+  }
+
   const char* filename = argv[1];
 
   // Load model
@@ -57,16 +70,23 @@ int main(int argc, char* argv[]) {
 
   // Allocate tensor buffers.
   TFLITE_MINIMAL_CHECK(interpreter->AllocateTensors() == kTfLiteOk);
-  printf("=== Pre-invoke Interpreter State ===\n");
-  tflite::PrintInterpreterState(interpreter.get());
+  // printf("=== Pre-invoke Interpreter State ===\n");
+  // tflite::PrintInterpreterState(interpreter.get());
 
   // Fill input buffers
   // TODO(user): Insert code to fill input tensors
 
   // Run inference
+
+  printf("=== Run started ===\n");
+  m5_reset_stats(0,0);
+  for (int run = 0; run < num_times; run++) {
   TFLITE_MINIMAL_CHECK(interpreter->Invoke() == kTfLiteOk);
-  printf("\n\n=== Post-invoke Interpreter State ===\n");
-  tflite::PrintInterpreterState(interpreter.get());
+  }
+  m5_dump_stats(0, 0);
+  printf("=== Run complete ===\n");
+  // printf("\n\n=== Post-invoke Interpreter State ===\n");
+  // tflite::PrintInterpreterState(interpreter.get());
 
   // Read output buffers
   // TODO(user): Insert getting data out code.

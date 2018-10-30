@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 #include <cstdarg>
 
-#ifdef PROF_RISCV
+#ifndef USE_NEON
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/register.h"
 #else
 #include "tensorflow/contrib/lite/kernels/register.h"
@@ -27,6 +27,14 @@ limitations under the License.
 #ifdef PROF_RISCV
 #include "tensorflow/contrib/lite/experimental/riscv/profiling/stats.h"
 #endif
+
+#ifdef ARM_GEM5
+extern "C" void m5_checkpoint(int a, int b);
+extern "C" void m5_reset_stats(int a, int b);
+extern "C" void m5_dump_stats (int a, int b);
+extern "C" void m5_exit (int a);
+#endif
+
 
 namespace tflite {
 namespace benchmark_depthwiseconv {
@@ -122,6 +130,9 @@ void DepthwiseConvBenchmarkFloat32InputWidthHeight(int matrix_size, int num_runs
   tflite::riscv::stats::csr counters;
   tflite::riscv::stats::StartStats(&counters);  // enable csr counters
   #endif
+  #ifdef ARM_GEM5
+  m5_reset_stats(0,0);
+  #endif
 
   for(int i = 0; i < num_runs; i++){
     m.Invoke();
@@ -129,6 +140,9 @@ void DepthwiseConvBenchmarkFloat32InputWidthHeight(int matrix_size, int num_runs
   #ifdef PROF_RISCV
   tflite::riscv::stats::StopStats(&counters);    // disable csr counters
   tflite::riscv::stats::PrintStats(&counters);
+  #endif
+  #ifdef ARM_GEM5
+  m5_dump_stats(0, 0);
   #endif
 }
 
@@ -159,6 +173,9 @@ void DepthwiseConvBenchmarkFloat32InputDepth(int matrix_size, int num_runs) {
   tflite::riscv::stats::csr counters;
   tflite::riscv::stats::StartStats(&counters);  // enable csr counters
   #endif
+  #ifdef ARM_GEM5
+  m5_reset_stats(0,0);
+  #endif
 
   for(int i = 0; i < num_runs; i++){
     m.Invoke();
@@ -166,6 +183,9 @@ void DepthwiseConvBenchmarkFloat32InputDepth(int matrix_size, int num_runs) {
   #ifdef PROF_RISCV
   tflite::riscv::stats::StopStats(&counters);    // disable csr counters
   tflite::riscv::stats::PrintStats(&counters);
+  #endif
+  #ifdef ARM_GEM5
+  m5_dump_stats(0, 0);
   #endif
 }
 }  // namespace depthwiseconv_test
