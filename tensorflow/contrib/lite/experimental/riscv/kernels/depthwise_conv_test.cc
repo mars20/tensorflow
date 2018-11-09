@@ -203,6 +203,7 @@ void TestDepthwiseConvSimpleDilatedTestPaddingSame() {
 
 
 // Runs the DepthwiseConv and compares against the reference implementation.
+#ifdef RISCV
 void TestOneDepthwiseConv(
     const DepthwiseParams& params, const RuntimeShape& input_shape,
     const float* input_data, const RuntimeShape& filter_shape,
@@ -328,15 +329,17 @@ void TestOneDepthwiseConv() {
   while (!TryTestOneDepthwiseConv()) {
   }
 }
+#endif
 }  // namespace depthwiseconv_test
 }  // namespace tflite
-
 int main(int argc, char** argv) {
   tflite::depthwiseconv_test::TestDepthwiseConvSimpleTest();
   tflite::depthwiseconv_test::TestDepthwiseConvSimpleDilatedTestPaddingValid();
   tflite::depthwiseconv_test::TestDepthwiseConvSimpleDilatedTestPaddingSame();
+  #ifdef RISCV
   const int kTestsToRun = 100;
   for (int i = 0; i < kTestsToRun; i++) {
     tflite::depthwiseconv_test::TestOneDepthwiseConv();
   }
+  #endif
 }

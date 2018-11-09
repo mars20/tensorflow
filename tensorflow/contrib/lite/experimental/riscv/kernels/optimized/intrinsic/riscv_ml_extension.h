@@ -65,6 +65,12 @@ inline void __VectorLoadInput1(const float* load_address, int stride) {
                : "r"(load_address), "r"(stride));
 }
 
+inline void __VectorLoadInput2(const float* load_address, int stride) {
+  asm volatile("vlsd va2, 0(%0), %1, v \t\n"
+               :
+               : "r"(load_address), "r"(stride));
+}
+
 inline void __VectorLoadActivationInput(float* load_address) {
   asm volatile("vlsd vt11, 0(%0), v\t\n"
                :
@@ -78,11 +84,6 @@ inline void __VectorLoadActivationInput(float* load_address, int stride) {
                : "r"(load_address), "r"(stride));
 }
 
-inline void __VectorLoadInput2(const float* load_address, int stride) {
-  asm volatile("vlsd va2, 0(%0), %1, v \t\n"
-               :
-               : "r"(load_address), "r"(stride));
-}
 
 inline void __VectorLoadBias(const float* load_address) {
   asm volatile("vlsd vt4, 0(%0), v \t\n" : : "r"(load_address));
@@ -180,22 +181,38 @@ inline void __VectorStoreAccum(float* store_address) {
   asm volatile("vssd vt11, 0(%0), s \t\n" : : "r"(store_address));
 }
 
+inline void __VectorSplatMulAccFloat(int idx) {
+  asm volatile("vsplat vs3, va1, %0, v \t\n"
+               "vfmadd vt4, vs3, va2, vt4, v \t\n"
+               :
+               : "r"(idx)
+               );
+}
+
+// inline void __VectorLoadKernel11kMaxVectorLength32(const float* load_address, int offset){
+//   asm volatile("vlsd va2, 0(%0), v \t\n"
+//                "vlsd va3, 0(%1), v \t\n"
+//                :
+//                : "r"(load_address));
+// }
+
+
 void VectorVectorAdd(const float* input1, const float* input2, float* output,
-                     int len, int batch_size = 1);
+                     int len);
 
 void VectorVectorAddMinMax(const float* input1, const float* input2,
                            float output_min, float output_max, float* output,
-                           int len, int batch_size = 1);
+                           int len);
 
 void VectorVectorMultiply(const float* input1, const float* input2,
-                          float* output, int len, int batch_size = 1);
+                          float* output, int len);
 
 void VectorVectorMultiplyAccumulate(const float* input1, const float* input2,
-                                    float* output, int len, int batch_size = 1);
+                                    float* output, int len);
 
 void VectorMatrixMultiplyAccumulate(const float* vector, const float* matrix,
                                     float* output, int matrix_rows,
-                                    int matrix_cols, int batch_size = 1);
+                                    int matrix_cols);
 
 void VectorVectorMultiplyAccumulateDepthwise(const float* input1,
                                              const float* input2, float* output,
@@ -205,5 +222,31 @@ void VectorVectorMultiplyAccumulateDepthwise(const float* input1,
 void VectorAveragePooling(const float* input, float* output, int depth,
                           bool use_zero);
 
-void VectorActivationFunctionWithMinMax(float* data, float activation_min, float activation_max, int length);
+void VectorActivationFunctionWithMinMax(float* data, float activation_min,
+                                        float activation_max, int length);
+
+
+void MatrixVectorMultiplyAccumulate(const float* matrix, int matrix_rows,
+                                    int matrix_cols, const float* vector,
+                                    float* output);
+
+void MatrixBatchVectorMultiplyAccumulate(const float* matrix, int matrix_rows,
+                                         int matrix_cols, const float* vector,
+                                         int batch_size, float* output,
+                                         int output_stride);
+
+void VectorBatchVectorCwiseProductAccumulate(const float* vector,
+                                             int v_len,
+                                             const float* batch_vector,
+                                             int batch_size,
+                                             float* output);
+void AddBiasActivationFunctionWithMinMax(float* vector, const float* bias,
+                                         float output_min, float output_max,
+                                         int flatted_len, int bias_len);
+
+
+void Kernel1x1MultiplyAccumulate(const float* filter, int input_depth,
+                                 int output_depth,
+                                 const float* input,
+                                 float* output);
 #endif  // TENSORFLOW_CONTRIB_LITE_EXPERIMENTAL_RISCV_KERNELS_OPTIMIZED_INTRINSIC_RISCV_ML_EXTENSION_H_

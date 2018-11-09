@@ -62,19 +62,22 @@ inline void Conv(const ConvParams& params, const RuntimeShape& input_shape,
           float total = 0.f;
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
             for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
-              for (int in_channel = 0; in_channel < input_depth; ++in_channel) {
-                const int in_x = in_x_origin + dilation_width_factor * filter_x;
-                const int in_y =
-                    in_y_origin + dilation_height_factor * filter_y;
-                // If the location is outside the bounds of the input image,
-                // use zero as a default value.
-                if ((in_x >= 0) && (in_x < input_width) && (in_y >= 0) &&
-                    (in_y < input_height)) {
-                  float input_value = input_data[Offset(
-                      input_shape, batch, in_y, in_x, in_channel)];
+              const int in_x = in_x_origin + dilation_width_factor * filter_x;
+              const int in_y =
+                  in_y_origin + dilation_height_factor * filter_y;
+              if ((in_x >= 0) && (in_x < input_width) && (in_y >= 0) &&
+                  (in_y < input_height)) {
+                int input_offset = Offset(
+                  input_shape, batch, in_y, in_x, 0);
+                int filter_offset = Offset(filter_shape, out_channel, filter_y,
+                                         filter_x, 0);
+                for (int in_channel = 0; in_channel < input_depth; ++in_channel) {
+                  // If the location is outside the bounds of the input image,
+                  // use zero as a default value.
+
+                  float input_value = input_data[input_offset + in_channel];
                   float filter_value =
-                      filter_data[Offset(filter_shape, out_channel, filter_y,
-                                         filter_x, in_channel)];
+                      filter_data[filter_offset + in_channel];
                   total += (input_value * filter_value);
                 }
               }

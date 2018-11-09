@@ -54,7 +54,8 @@ inline void ConvIm2Col(const ConvParams& params, const RuntimeShape& input_shape
       dilation_width_factor != 1 || dilation_height_factor != 1;
   const bool need_im2col = stride_width != 1 || stride_height != 1 ||
                            filter_width != 1 || filter_height != 1;
-
+  const bool use_kernel1x1 = stride_width == 1 && stride_height == 1 &&
+                           filter_width == 1 && filter_height == 1;
   if (need_dilated_im2col) {
     DilatedIm2col(params, float_zero_byte, input_shape, input_data,
                   filter_shape, output_shape, im2col_data);
@@ -90,28 +91,37 @@ inline void ConvIm2Col(const ConvParams& params, const RuntimeShape& input_shape
 
   const int output_height = ArraySize(output_dims, 2);
   const int output_width = ArraySize(output_dims, 1);
+  SetConfig(kElementWidthMax32, kMaxVectorLength32);
   for (int batch = 0; batch < batches; ++batch) {
     for (int out_y = 0; out_y < output_height; ++out_y) {
       for (int out_x = 0; out_x < output_width; ++out_x) {
-        for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
-          float total = 0.f;
-          VectorVectorMultiplyAccumulate(
-              gemm_input_data + out_x * gemm_input_dims.strides[1] +
-                  out_y * gemm_input_dims.strides[2] +
-                  batch * gemm_input_dims.strides[3],
-              filter_data + out_channel * filter_dims.strides[3], &total,
-              input_depth);
-          float bias_value = 0.0f;
-          if (bias_data) {
-            bias_value = bias_data[Offset(bias_dims, out_channel, 0, 0, 0)];
+        const float *input_address = gemm_input_data + out_x * gemm_input_dims.strides[1] +
+                                     out_y * gemm_input_dims.strides[2] +
+                                     batch * gemm_input_dims.strides[3];
+        float *output_address = output_data + out_x * output_dims.strides[1] +
+                                out_y * output_dims.strides[2] +
+                                batch * output_dims.strides[3];
+        if(use_kernel1x1) {
+          Kernel1x1MultiplyAccumulate(filter_data, input_depth,
+                                      output_depth, input_address,
+                                      output_address);
+        } else {
+          for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
+            //       float total = 0.f;
+            VectorVectorMultiplyAccumulate(input_address,
+                                           filter_data + out_channel * filter_dims.strides[3],
+                                           output_address + out_channel,
+                                           input_depth);
           }
-          output_data[Offset(output_dims, out_channel, out_x, out_y, batch)] =
-              ActivationFunctionWithMinMax(total + bias_value,
-                                           output_activation_min,
-                                           output_activation_max);
         }
       }
     }
+  }
+  int flattened_len = output_shape.FlatSize();
+  if (bias_data) {
+    AddBiasActivationFunctionWithMinMax(output_data, bias_data,
+                                        output_activation_min, output_activation_max,
+                                        flattened_len, output_depth);
   }
 }
 

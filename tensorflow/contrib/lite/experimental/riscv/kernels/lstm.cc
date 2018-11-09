@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/kernel_util.h"
 //#include "tensorflow/contrib/lite/experimental/riscv/kernels/reference/portable_tensor_utils.h"
 #include "tensorflow/contrib/lite/experimental/riscv/kernels/reference/lstm_float.h"
+#include "tensorflow/contrib/lite/experimental/riscv/kernels/optimized/lstm_float.h"
 #include "tensorflow/contrib/lite/kernels/internal/tensor.h"
 #include "tensorflow/contrib/lite/kernels/op_macros.h"
 
@@ -33,6 +34,12 @@ namespace tflite {
 namespace ops {
 namespace riscv {
 namespace lstm {
+
+// This file has reference and optimized implementation of LSTM.
+enum KernelType {
+  kReference,
+  kOptimized,  // Neon-free
+};
 
 struct OpData {
   // Which kernel type to use. Full kernel (20 inputs) or basic kernel

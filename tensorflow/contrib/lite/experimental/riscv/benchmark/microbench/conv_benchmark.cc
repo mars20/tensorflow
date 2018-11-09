@@ -97,12 +97,12 @@ class ConvolutionOpModel : public BaseConvolutionOpModel {
   std::vector<float> GetOutput() { return ExtractVector<float>(output_); }
 };
 
-void ConvBenchmarkFloat32InputWidthHeight(int matrix_size, int num_runs) {
+void ConvBenchmarkFloat32InputWidthHeight(int matrix_size, int kernel_size, int num_runs) {
   const int depth = 8;
   const int image_width = matrix_size;
   const int image_height = matrix_size;
   const int image_batch_count = 1;
-  const int filter_size = 3;
+  const int filter_size = kernel_size;
   const int filter_count = 16;
   const int stride_width = 1;
   const int stride_height = 1;
@@ -143,12 +143,12 @@ void ConvBenchmarkFloat32InputWidthHeight(int matrix_size, int num_runs) {
   #endif
 }
 
-void ConvBenchmarkFloat32InputDepth(int matrix_size, int num_runs) {
+void ConvBenchmarkFloat32InputDepth(int matrix_size, int kernel_size, int num_runs) {
   const int depth = matrix_size;
   const int image_width = 32;
   const int image_height = 32;
   const int image_batch_count = 1;
-  const int filter_size = 3;
+  const int filter_size = kernel_size;
   const int filter_count = 16;
   const int stride_width = 1;
   const int stride_height = 1;
@@ -196,12 +196,13 @@ void ConvBenchmarkFloat32InputDepth(int matrix_size, int num_runs) {
 
 
 int main(int argc, char** argv) {
-  if (argc != 3) {
-    fprintf(stderr, "<binary> <matrix size> <num runs>\n");
+  if (argc != 4) {
+    fprintf(stderr, "<binary> <matrix size> <kernel size> <num runs>\n");
     return 1;
   }
   int matix_size = atoi(argv[1]);
-  int num_runs = atoi(argv[2]);
-  tflite::benchmark_conv::ConvBenchmarkFloat32InputWidthHeight(matix_size, num_runs);
-  tflite::benchmark_conv::ConvBenchmarkFloat32InputDepth(matix_size, num_runs);
+  int kernel_size = atoi(argv[2]);
+  int num_runs = atoi(argv[3]);
+  tflite::benchmark_conv::ConvBenchmarkFloat32InputWidthHeight(matix_size, kernel_size, num_runs);
+  tflite::benchmark_conv::ConvBenchmarkFloat32InputDepth(matix_size, kernel_size, num_runs);
 }
