@@ -406,20 +406,21 @@ void Kernel1x1MultiplyAccumulate(const float* filter,
     const float* filter_ptr = filter + input_depth*zout;
     for(int zin = 0; zin < new_input_depth; zin += kMaxVectorLength32){
       __VectorLoadInput1(input + zin);
-      __VectorLoadInput2(filter_ptr + zin, input_depth);
 
       // TODO(marcialouis) : We need to write it as marcos
       for(int i =0 ; i< kMaxVectorLength32; i++) {
+        __VectorLoadInput2(filter_ptr + i, input_depth);
         __VectorSplatMulAccFloat(i);
       }
     }
     if (input_depth_diff){
       SetVl(input_depth_diff);
       __VectorLoadInput1(input + new_input_depth);
-      __VectorLoadInput2(filter_ptr + new_input_depth,
-                         input_depth);
+
       SetVl(kMaxVectorLength32);
       for(int i =0 ; i< input_depth_diff; i++) {
+        __VectorLoadInput2(filter_ptr + i,
+                         input_depth);
         __VectorSplatMulAccFloat(i);
       }
     }

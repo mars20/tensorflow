@@ -54,8 +54,8 @@ inline void ConvIm2Col(const ConvParams& params, const RuntimeShape& input_shape
       dilation_width_factor != 1 || dilation_height_factor != 1;
   const bool need_im2col = stride_width != 1 || stride_height != 1 ||
                            filter_width != 1 || filter_height != 1;
-  const bool use_kernel1x1 = stride_width == 1 && stride_height == 1 &&
-                           filter_width == 1 && filter_height == 1;
+  //  const bool use_kernel1x1 = stride_width == 1 && stride_height == 1 &&
+  //                       filter_width == 1 && filter_height == 1;
   if (need_dilated_im2col) {
     DilatedIm2col(params, float_zero_byte, input_shape, input_data,
                   filter_shape, output_shape, im2col_data);
@@ -101,19 +101,23 @@ inline void ConvIm2Col(const ConvParams& params, const RuntimeShape& input_shape
         float *output_address = output_data + out_x * output_dims.strides[1] +
                                 out_y * output_dims.strides[2] +
                                 batch * output_dims.strides[3];
-        if(use_kernel1x1) {
-          Kernel1x1MultiplyAccumulate(filter_data, input_depth,
+
+        Kernel1x1MultiplyAccumulate(filter_data, input_depth,
                                       output_depth, input_address,
                                       output_address);
-        } else {
-          for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
-            //       float total = 0.f;
-            VectorVectorMultiplyAccumulate(input_address,
-                                           filter_data + out_channel * filter_dims.strides[3],
-                                           output_address + out_channel,
-                                           input_depth);
-          }
-        }
+        // if(use_kernel1x1) {
+        //   Kernel1x1MultiplyAccumulate(filter_data, input_depth,
+        //                               output_depth, input_address,
+        //                               output_address);
+        // } else {
+        //   for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
+        //     //       float total = 0.f;
+        //     VectorVectorMultiplyAccumulate(input_address,
+        //                                    filter_data + out_channel * filter_dims.strides[3],
+        //                                    output_address + out_channel,
+        //                                    input_depth);
+        //   }
+        // }
       }
     }
   }

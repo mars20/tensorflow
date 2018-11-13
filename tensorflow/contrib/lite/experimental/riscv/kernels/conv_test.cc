@@ -19,6 +19,10 @@ limitations under the License.
 #include "tensorflow/contrib/lite/interpreter.h"
 #include "tensorflow/contrib/lite/model.h"
 
+#include "tensorflow/contrib/lite/experimental/riscv/kernels/optimized/conv_float.h"
+#include "tensorflow/contrib/lite/experimental/riscv/kernels/reference/conv_float.h"
+#include "tensorflow/contrib/lite/kernels/internal/test_util.h"
+
 namespace tflite {
 
 namespace conv_test {
@@ -439,6 +443,139 @@ void TestConvSimpleTestFloatWithDilation() {
   std::vector<float> reference = {5, 5, 5, 5, 5, 5, 5, 5, 5};
   CHECK(isNearlyEqual(result, reference) == true);
 }
+
+// Runs the Conv and compares against the reference implementation.
+#ifdef RISCV
+void TestOneConv(
+    const ConvParams& params, const RuntimeShape& input_shape,
+    const float* input_data, const RuntimeShape& filter_shape,
+    const float* filter_data, const RuntimeShape& bias_shape,
+    const float* bias_data, const RuntimeShape& output_shape,
+    const RuntimeShape& im2col_shape, float* im2col_data) {
+  const int output_buffer_size = output_shape.FlatSize();
+  std::vector<float> output_data(output_buffer_size);
+  std::vector<float> reference_output_data(output_buffer_size);
+  reference_ops::Conv(params, input_shape, input_data, filter_shape,
+                      filter_data, bias_shape, bias_data, output_shape,
+                      reference_output_data.data(), im2col_shape, im2col_data);
+  optimized_ops::Conv(params, input_shape, input_data, filter_shape,
+                            filter_data, bias_shape, bias_data, output_shape,
+                            output_data.data(), im2col_shape, im2col_data);
+
+
+  //isNearlyEqual(output_data, reference_output_data);
+
+  double sum_abs_diff = 0;
+  float max_abs_val = 0;
+  for (int i = 0; i < output_buffer_size; i++) {
+    sum_abs_diff += std::abs(output_data[i] - reference_output_data[i]);
+    max_abs_val = std::max(max_abs_val, std::abs(reference_output_data[i]));
+  }
+  if (sum_abs_diff != 0.f) {
+    const float mean_diff =
+        static_cast<float>(sum_abs_diff / output_buffer_size);
+    const float relative_error = std::abs(mean_diff) / max_abs_val;
+    if(relative_error > 1e-5f){
+      printf("batch:%d\n input_depth:%d\n input_width:%d\n input_height:%d\n filter_width:%d\n, filter_height:%d\n, stride:%d\n output_depth:%d\n dilation_width_factor:%d\n dilation_height_factor:%d\n output_activation_min:%d\n output_activation_max:%d\n",input_shape.Dims(0), input_shape.Dims(3), input_shape.Dims(2), input_shape.Dims(1),filter_shape.Dims(2), filter_shape.Dims(1), params.stride_width, output_shape.Dims(3) , params.dilation_width_factor, params.dilation_height_factor, params.float_activation_min, params.float_activation_max);
+    }
+    printf("Relative error %f\n", relative_error);
+    //ASSERT_LT(relative_error, 1e-5f);
+  }
+}
+
+// This function picks some random DepthwiseConv params, which may or may not
+// be legal. If they're not legal, it returns false. If they're legal,
+// it runs the DepthwiseConv test and returns true. This allows the caller
+// to loop until a test has been run.
+bool TryTestOneConv() {
+  // We have to pick a lot of positive values, where we are particularly
+  // interested in small values because they are most likely to be special
+  // cases in optimized implementations, and secondarily because they allow
+  // tests to run fast, which means we can run more tests and get more
+  // coverage.
+  const int batch = ExponentialRandomPositiveInt(0.9f, 3, 20);
+  const int input_depth = ExponentialRandomPositiveInt(0.9f, 6, 50);
+  const int input_width = ExponentialRandomPositiveInt(0.9f, 20, 200);
+  const int input_height = ExponentialRandomPositiveInt(0.9f, 20, 200);
+  const int filter_width = ExponentialRandomPositiveInt(0.9f, 4, 10);
+  const int filter_height =  ExponentialRandomPositiveInt(0.9f, 4, 10);
+  const int filter_count = 18;
+  const int stride = 1;
+  const int output_depth = filter_count;
+  const int dilation_width_factor = 1;
+  const int dilation_height_factor = 1;
+  float output_activation_min, output_activation_max;
+  FusedActivationFunctionType ac =
+      RandomElement(std::vector<FusedActivationFunctionType>(
+          {FusedActivationFunctionType::kNone,
+           FusedActivationFunctionType::kRelu,
+           FusedActivationFunctionType::kRelu1,
+           FusedActivationFunctionType::kRelu6}));
+  GetActivationMinMax(ac, &output_activation_min, &output_activation_max);
+  bool need_im2col = (stride != 1 || dilation_width_factor != 1 || dilation_height_factor != 1
+                         || filter_width != 1 || filter_height != 1);
+
+  const int kMaxSupportedOutputDepth = 1024;
+  if (output_depth > kMaxSupportedOutputDepth) {
+    return false;
+  }
+
+  RuntimeShape input_shape_inference(
+      {batch, input_height, input_width, input_depth});
+  RuntimeShape output_shape_inference;
+  int pad_width, pad_height;
+  const auto padding_type =
+      UniformRandomInt(0, 1) ? PaddingType::kSame : PaddingType::kValid;
+  if (!ComputeConvSizes(input_shape_inference, output_depth, filter_width,
+                        filter_height, stride, dilation_width_factor,
+                        dilation_height_factor, padding_type,
+                        &output_shape_inference, &pad_width, &pad_height)) {
+    return false;
+  }
+  RuntimeShape im2col_shape_inference(
+      {output_shape_inference.Dims(0), output_shape_inference.Dims(1),
+       output_shape_inference.Dims(2), input_depth * filter_height * filter_width});
+  const int im2col_buffer_size = im2col_shape_inference.FlatSize();
+  float *im2col_data = need_im2col ? (float*) malloc(im2col_buffer_size*sizeof(float)):nullptr;
+
+  RuntimeShape filter_shape_inference(
+      {1, filter_height, filter_width, output_depth});
+  RuntimeShape bias_shape_inference({1, 1, 1, output_depth});
+  const int input_buffer_size = input_shape_inference.FlatSize();
+  const int filter_buffer_size = filter_shape_inference.FlatSize();
+  std::vector<float> input_data(input_buffer_size);
+  std::vector<float> filter_data(filter_buffer_size);
+  std::vector<float> bias_data(output_depth);
+  const float input_amplitude = 1.f;
+  const float filter_amplitude = 1.f;
+  const float bias_amplitude =
+      filter_width * filter_height * input_amplitude * filter_amplitude;
+  FillRandom(&input_data, -input_amplitude, input_amplitude);
+  FillRandom(&filter_data, -filter_amplitude, filter_amplitude);
+  FillRandom(&bias_data, -bias_amplitude, bias_amplitude);
+  ConvParams op_params;
+  op_params.padding_type = PaddingType::kSame;
+  op_params.padding_values.width = pad_width;
+  op_params.padding_values.height = pad_height;
+  op_params.stride_width = stride;
+  op_params.stride_height = stride;
+  op_params.dilation_width_factor = dilation_width_factor;
+  op_params.dilation_height_factor = dilation_height_factor;
+  op_params.float_activation_min = output_activation_min;
+  op_params.float_activation_max = output_activation_max;
+  TestOneConv(op_params, input_shape_inference, input_data.data(),
+              filter_shape_inference, filter_data.data(),
+              bias_shape_inference, bias_data.data(),
+              output_shape_inference, im2col_shape_inference, im2col_data);
+  return true;
+}
+
+void TestOneConv() {
+  while (!TryTestOneConv()) {
+  }
+}
+#endif
+
 }  // namespace conv_test
 }  // namespace tflite
 
@@ -451,4 +588,10 @@ int main(int argc, char** argv) {
   tflite::conv_test::TestConvHandCalculatedWithReluFloat32();
   tflite::conv_test::TestConvHandCalculatedValidFloat32();
   tflite::conv_test::TestConvSimpleTestFloatWithDilation();
+  #ifdef RISCV
+  const int kTestsToRun = 50;
+  for (int i = 0; i < kTestsToRun; i++) {
+    tflite::conv_test::TestOneConv();
+  }
+  #endif
 }
