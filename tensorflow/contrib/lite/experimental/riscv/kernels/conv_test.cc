@@ -477,8 +477,11 @@ void TestOneConv(
     const float relative_error = std::abs(mean_diff) / max_abs_val;
     if(relative_error > 1e-5f){
       printf("batch:%d\n input_depth:%d\n input_width:%d\n input_height:%d\n filter_width:%d\n, filter_height:%d\n, stride:%d\n output_depth:%d\n dilation_width_factor:%d\n dilation_height_factor:%d\n output_activation_min:%d\n output_activation_max:%d\n",input_shape.Dims(0), input_shape.Dims(3), input_shape.Dims(2), input_shape.Dims(1),filter_shape.Dims(2), filter_shape.Dims(1), params.stride_width, output_shape.Dims(3) , params.dilation_width_factor, params.dilation_height_factor, params.float_activation_min, params.float_activation_max);
-    }
     printf("Relative error %f\n", relative_error);
+    for (int i = 0; i < output_buffer_size; i++) {
+      printf("index: %d, computed: %f, expected: %f \n", i, output_data[i], reference_output_data[i]);
+     }
+    }
     //ASSERT_LT(relative_error, 1e-5f);
   }
 }
@@ -499,11 +502,14 @@ bool TryTestOneConv() {
   const int input_height = ExponentialRandomPositiveInt(0.9f, 20, 200);
   const int filter_width = ExponentialRandomPositiveInt(0.9f, 4, 10);
   const int filter_height =  ExponentialRandomPositiveInt(0.9f, 4, 10);
-  const int filter_count = 18;
+  const int filter_count = ExponentialRandomPositiveInt(0.9f, 6, 50);
   const int stride = 1;
+  //  const int stride =  ExponentialRandomPositiveInt(0.9f, 3, 8);
   const int output_depth = filter_count;
   const int dilation_width_factor = 1;
   const int dilation_height_factor = 1;
+  // const int dilation_width_factor = RandomElement(std::vector<int>({1, 2, 4}));
+  // const int dilation_height_factor = RandomElement(std::vector<int>({1, 2, 4}));
   float output_activation_min, output_activation_max;
   FusedActivationFunctionType ac =
       RandomElement(std::vector<FusedActivationFunctionType>(
@@ -589,7 +595,7 @@ int main(int argc, char** argv) {
   tflite::conv_test::TestConvHandCalculatedValidFloat32();
   tflite::conv_test::TestConvSimpleTestFloatWithDilation();
   #ifdef RISCV
-  const int kTestsToRun = 50;
+  const int kTestsToRun = 100;
   for (int i = 0; i < kTestsToRun; i++) {
     tflite::conv_test::TestOneConv();
   }

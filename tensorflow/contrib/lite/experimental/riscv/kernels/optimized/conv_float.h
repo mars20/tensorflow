@@ -110,13 +110,13 @@ inline void ConvIm2Col(const ConvParams& params, const RuntimeShape& input_shape
         //                               output_depth, input_address,
         //                               output_address);
         // } else {
-        //   for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
-        //     //       float total = 0.f;
+        // for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
+        //           float total = 0.f;
         //     VectorVectorMultiplyAccumulate(input_address,
         //                                    filter_data + out_channel * filter_dims.strides[3],
         //                                    output_address + out_channel,
         //                                    input_depth);
-        //   }
+        //  }
         // }
       }
     }

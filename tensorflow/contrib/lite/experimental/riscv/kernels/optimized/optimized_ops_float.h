@@ -92,11 +92,10 @@ inline void AveragePool(const PoolParams& params,
           }
         }
         for (int channel = 0; channel < depth; channel++) {
-          const float average =
-              output_data[Offset(output_dims, channel, out_x, out_y, batch)] /
-              filter_count;
-          output_data[Offset(output_dims, channel, out_x, out_y, channel)] =
-              ActivationFunctionWithMinMax(average, params.float_activation_min,
+         output_data[Offset(output_dims, channel, out_x, out_y, batch)] =
+              ActivationFunctionWithMinMax(output_data[Offset(output_dims, channel,
+                                                              out_x, out_y, batch)]/filter_count,
+                                           params.float_activation_min,
                                            params.float_activation_max);
         }
       }

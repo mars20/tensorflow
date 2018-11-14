@@ -149,8 +149,9 @@ static TfLiteStatus AllocateTemporaryTensorsIfRequired(TfLiteContext* context,
   // This path is only used for float processing, so only create the buffer if
   // we're running with that data type.
   data->need_hwcn_weights = (input->type == kTfLiteFloat32 &&
-                             data->run_multithreaded_kernel && !is_hybrid);
-
+                                      data->run_multithreaded_kernel && !is_hybrid);
+  // printf("bool value of need_hwcn %d\n", data->need_hwcn_weights);
+  // printf("bool value of multithread %d\n", data->run_multithreaded_kernel);
   int temporaries_count = 0;
   if (data->need_im2col) {
     data->im2col_index = temporaries_count;
@@ -237,10 +238,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       (input->type == kTfLiteFloat32 && filter->type == kTfLiteUInt8);
 
   data->run_multithreaded_kernel = context->recommended_num_threads != 1;
+  // printf(" context->recommended_num_threads %d\n", context->recommended_num_threads);
   // Hybrid kernels don't support multithreading yet.
   if (is_hybrid) {
     data->run_multithreaded_kernel = false;
   }
+  data->run_multithreaded_kernel = false;
 
   TF_LITE_ENSURE_STATUS(AllocateTemporaryTensorsIfRequired(context, node));
 
@@ -403,8 +406,8 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
     case kOptimized: {
       #ifdef RISCV
       // printf("=== Optimized Conv ===\n");
-      // tflite::riscv::stats::csr counters_conv_opt;
-      // tflite::riscv::stats::StartStats(&counters_conv_opt);
+       // tflite::riscv::stats::csr counters_conv_opt;
+       // tflite::riscv::stats::StartStats(&counters_conv_opt);
       optimized_ops::ConvIm2Col(op_params, GetTensorShape(input),
                           GetTensorData<float>(input), GetTensorShape(filter),
                           GetTensorData<float>(filter), GetTensorShape(bias),
@@ -438,8 +441,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       data->need_hwcn_weights
           ? &context->tensors[node->temporaries->data[data->hwcn_weights_index]]
           : nullptr;
-
+  // printf("need im2col %d\n", data->need_im2col);
   if (data->need_hwcn_weights && !data->have_weights_been_transposed) {
+    // printf("Transpose called\n");
     TransposeFloatTensor(filter, hwcn_weights);
     data->have_weights_been_transposed = true;
   }
