@@ -145,6 +145,7 @@ void TestConvSimpleTestFloat32WithChannels() {
       17, 4, 3,  // second batch, left
       37, 4, 3,  // second batch, right
   };
+
   CHECK(isNearlyEqual(result, reference) == true);
 }
 
@@ -478,9 +479,9 @@ void TestOneConv(
     if(relative_error > 1e-5f){
       printf("batch:%d\n input_depth:%d\n input_width:%d\n input_height:%d\n filter_width:%d\n, filter_height:%d\n, stride:%d\n output_depth:%d\n dilation_width_factor:%d\n dilation_height_factor:%d\n output_activation_min:%d\n output_activation_max:%d\n",input_shape.Dims(0), input_shape.Dims(3), input_shape.Dims(2), input_shape.Dims(1),filter_shape.Dims(2), filter_shape.Dims(1), params.stride_width, output_shape.Dims(3) , params.dilation_width_factor, params.dilation_height_factor, params.float_activation_min, params.float_activation_max);
     printf("Relative error %f\n", relative_error);
-    for (int i = 0; i < output_buffer_size; i++) {
-      printf("index: %d, computed: %f, expected: %f \n", i, output_data[i], reference_output_data[i]);
-     }
+    // for (int i = 0; i < output_buffer_size; i++) {
+      // printf("index: %d, computed: %f, expected: %f \n", i, output_data[i], reference_output_data[i]);
+    //}
     }
     //ASSERT_LT(relative_error, 1e-5f);
   }
@@ -586,16 +587,33 @@ void TestOneConv() {
 }  // namespace tflite
 
 int main(int argc, char** argv) {
+  printf("TestConvSimpleTestFloat32\n");
   tflite::conv_test::TestConvSimpleTestFloat32();
+
+  printf("TestConvSimpleTestFloat32WithChannels\n");
   tflite::conv_test::TestConvSimpleTestFloat32WithChannels();
+
+  printf("TestConvSimpleTestFloat32WithAnisotropicStrides\n");
   tflite::conv_test::TestConvSimpleTestFloat32WithAnisotropicStrides();
+
+  printf("TestConvHandCalculatedFloat32\n");
   tflite::conv_test::TestConvHandCalculatedFloat32();
+
+  printf("TestConvHandCalculatedWithBiasFloat32\n");
   tflite::conv_test::TestConvHandCalculatedWithBiasFloat32();
+
+  printf("TestConvHandCalculatedWithReluFloat32\n");
   tflite::conv_test::TestConvHandCalculatedWithReluFloat32();
+
+  printf("TestConvHandCalculatedValidFloat32\n");
   tflite::conv_test::TestConvHandCalculatedValidFloat32();
+
+  printf("TestConvSimpleTestFloatWithDilation\n");
   tflite::conv_test::TestConvSimpleTestFloatWithDilation();
-  #ifdef RISCV
-  const int kTestsToRun = 100;
+
+#ifdef RISCV
+  printf("Test Compares ref_ops and opt_ops results\n");
+  const int kTestsToRun = 10;
   for (int i = 0; i < kTestsToRun; i++) {
     tflite::conv_test::TestOneConv();
   }

@@ -408,7 +408,7 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
       // printf("=== Optimized Conv ===\n");
        // tflite::riscv::stats::csr counters_conv_opt;
        // tflite::riscv::stats::StartStats(&counters_conv_opt);
-      optimized_ops::ConvIm2Col(op_params, GetTensorShape(input),
+      optimized_ops::Conv(op_params, GetTensorShape(input),
                           GetTensorData<float>(input), GetTensorShape(filter),
                           GetTensorData<float>(filter), GetTensorShape(bias),
                           GetTensorData<float>(bias), GetTensorShape(output),
