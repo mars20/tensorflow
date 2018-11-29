@@ -10,6 +10,8 @@ ifeq ($(TARGET), riscv32_mcu)
     -mexplicit-relocs \
     -fno-common \
     -falign-functions=4 \
+    -fno-builtin-printf \
+    -DTF_LITE_MCU_DEBUG_LOG \
     -DTF_LITE_RISCV_MCU
     
   CXXFLAGS += $(PLATFORM_FLAGS) \
@@ -36,7 +38,8 @@ ifeq ($(TARGET), riscv32_mcu)
     $(wildcard $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/libwrap/sys/*.c) \
     $(wildcard $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/libwrap/sys/*.cc) \
     $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/libwrap/misc/write_hex.c \
-    $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/libwrap/stdlib/malloc.c
+    $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/libwrap/stdlib/malloc.c \
+    $(wildcard tensorflow/lite/experimental/micro/riscv32_mcu/*.cc)
 
   MICRO_SPEECH_TEST_SRCS += \
     $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env/start.S \
