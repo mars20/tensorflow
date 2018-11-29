@@ -25,7 +25,6 @@ INCLUDES := \
 -I. \
 -I$(MAKEFILE_DIR)/../../../../../ \
 -I$(MAKEFILE_DIR)/../../../../../../ \
--I$(MAKEFILE_DIR)/../../../../../../../ \
 -I$(MAKEFILE_DIR)/downloads/ \
 -I$(MAKEFILE_DIR)/downloads/gemmlowp \
 -I$(MAKEFILE_DIR)/downloads/flatbuffers/include \
@@ -121,7 +120,7 @@ CC := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}gcc
 AR := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}ar
 
 MICRO_SPEECH_TEST_OBJS := $(addprefix $(OBJDIR), \
-$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(patsubst %.S,%.o,$(MICRO_SPEECH_TEST_SRCS)))))
+$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICRO_SPEECH_TEST_SRCS))))
 
 PREPROCESSOR_REFERENCE_TEST_OBJS := $(addprefix $(OBJDIR), \
 $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(PREPROCESSOR_REFERENCE_TEST_SRCS))))
@@ -142,11 +141,6 @@ $(OBJDIR)%.o: %.cc
 
 # For normal manually-created TensorFlow C source files.
 $(OBJDIR)%.o: %.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
-
-# For normal manually-created TensorFlow ASM source files.
-$(OBJDIR)%.o: %.S
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
 

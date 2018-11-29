@@ -33,7 +33,6 @@ GEMMLOWP_URL="https://github.com/google/gemmlowp/archive/719139ce755a0f31cbf1c37
 FLATBUFFERS_URL="https://github.com/google/flatbuffers/archive/1f5eae5d6a135ff6811724f6c57f911d1f46bb15.tar.gz"
 CMSIS_URL="https://github.com/ARM-software/CMSIS_5/archive/5.4.0.zip"
 STM32_BARE_LIB_URL="https://github.com/google/stm32_bare_lib/archive/c07d611fb0af58450c5a3e0ab4d52b47f99bc82d.zip"
-SIFIVE_FE310_LIB_URL="https://github.com/sifive/freedom-e-sdk/archive/baeeb8fd497a99b3c141d7494309ec2e64f19bdf.zip"
 
 download_and_extract() {
   local usage="Usage: download_and_extract URL DIR"
@@ -70,6 +69,5 @@ download_and_extract "${GEMMLOWP_URL}" "${DOWNLOADS_DIR}/gemmlowp"
 download_and_extract "${FLATBUFFERS_URL}" "${DOWNLOADS_DIR}/flatbuffers"
 download_and_extract "${CMSIS_URL}" "${DOWNLOADS_DIR}/cmsis"
 download_and_extract "${STM32_BARE_LIB_URL}" "${DOWNLOADS_DIR}/stm32_bare_lib"
-download_and_extract "${SIFIVE_FE310_LIB_URL}" "${DOWNLOADS_DIR}/sifive_fe310_lib"
 
 echo "download_dependencies.sh completed successfully." >&2
