@@ -126,3 +126,22 @@ debug logs here, along with the magic string `~~~ALL TESTS PASSED~~~`. This is
 the exact same code as before, just compiled and run on the STM32F103 rather
 than your desktop. We hope that the simplicity of this testing approach will
 help make adding support for new platforms as easy as possible.
+
+## Building for RISC-V MCUs
+
+Pre-requisities: Download pre-build RISC-V gnu tools from SIFIVE
+
+```
+curl -O -L "https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-20181030-x86_64-linux-ubuntu14.tar.gz"
+tar xzf riscv64-unknown-elf-gcc-20181030-x86_64-linux-ubuntu14.tar.gz
+
+export PATH=${PATH}:riscv64-unknown-elf-gcc-20181030-x86_64-linux-ubuntu14/bin/
+
+```
+
+ - Download the TensorFlow source with `git@github.com:mars20/tensorflow.git`
+ - Enter the source root directory by running `cd tensorflow`
+ - Checkout out the "riscv_mcu" branch by running `git checkout riscv_mcu`
+ - Download the dependencies by running `tensorflow/lite/experimental/micro/tools/make/download_dependencies.sh`. This may take a few minutes
+ - Build and test the library with `make -f tensorflow/lite/experimental/micro/tools/make/Makefile TARGET=riscv32_mcu`
+
