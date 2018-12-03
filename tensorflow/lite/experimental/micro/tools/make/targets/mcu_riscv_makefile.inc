@@ -16,6 +16,7 @@ ifeq ($(TARGET), riscv32_mcu)
     
   CXXFLAGS += $(PLATFORM_FLAGS) \
     -fpermissive \
+    -fno-exceptions \
     --std=gnu++11 
     
   CCFLAGS += $(PLATFORM_FLAGS) 
