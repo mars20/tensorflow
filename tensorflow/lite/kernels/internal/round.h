@@ -30,7 +30,7 @@ inline double TfLiteRound(const double x) { return ::round(x); }
 #else
 template <class T>
 inline T TfLiteRound(const T x) {
-#ifdef TF_LITE_RISCV_MCU
+#ifdef TF_LITE_USE_GLOBAL_ROUND
   return ::round(x);
 #else
   return std::round(x);
