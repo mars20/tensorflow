@@ -184,9 +184,12 @@ TfLiteRegistration* Register_FULLY_CONNECTED_OPT() {
   return &r;
 }
 
-TfLiteRegistration* Register_FULLY_CONNECTED() {
-
-  return Register_FULLY_CONNECTED_REF();
+ TfLiteRegistration* Register_FULLY_CONNECTED() {
+  #ifdef RISCV
+    return Register_FULLY_CONNECTED_OPT();
+  #else
+    return Register_FULLY_CONNECTED_REF();
+  #endif
 }
 
 }  // namespace riscv
