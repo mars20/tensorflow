@@ -539,6 +539,7 @@ void MatrixMatrixMultiplyAccumulate4x2(const float* matrix_a,
   for(int row_idx_a = 0; row_idx_a < new_matrix_a_rows; row_idx_a += MAX_BLOCK_SIZE) {
     // clear the accumulator registers
     __VectorClearOutputAccumBlock4x2();
+    // printf("in main loop\n");
 
     //compute base address for rows
     const float* matrix_a_ptr_block1 = matrix_a + matrix_a_cols * row_idx_a;
@@ -570,14 +571,18 @@ void MatrixMatrixMultiplyAccumulate4x2(const float* matrix_a,
   }
   // handle rows in matrix a
   if(matrix_a_diff) {
+    //   printf("in if loop\n");
 
     for(int i = new_matrix_a_rows; i < matrix_a_rows; i++){
         __VectorClearOutputAccumBlock1x2();
-      const float* matrix_a_ptr_block1 = matrix_a + matrix_a_rows * i;
+      const float* matrix_a_ptr_block1 = matrix_a + matrix_a_cols * i;
 
       for(int col_idx_a = 0; col_idx_a < matrix_a_cols; col_idx_a++){
 
+        //   printf("error loading input 1\n");
+
         __VectorLoadInput1Block1(matrix_a_ptr_block1 + col_idx_a);
+        //   printf("error loading input 2\n");
         __VectorLoadInput2Block2(matrix_b + col_idx_a,
                                  matrix_b + col_idx_a + matrix_b_cols*kMaxVectorLength32,
                                  matrix_b_cols);
@@ -590,7 +595,6 @@ void MatrixMatrixMultiplyAccumulate4x2(const float* matrix_a,
     }
   }
 }
-
 
 void MatrixMatrixMultiplyAccumulate4x3(const float* matrix_a,
                                        int matrix_a_rows,

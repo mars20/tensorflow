@@ -24,18 +24,20 @@ enum vconfig {
   kElementWidthMax64 = 0x420
 };  // element width
 
+// These are 256 bit SIMD width
 enum maxvlen {
-  kMaxVectorLength8 = 16,
-  kMaxVectorLength16 = 8,
-  kMaxVectorLength32 = 4,
-  kMaxVectorLength64 = 2
+  kMaxVectorLength8 = 32,
+  kMaxVectorLength16 = 16,
+  kMaxVectorLength32 = 8,
+  kMaxVectorLength64 = 4
 };
 
+// These are 256 bit SIMD width
 enum shift_offsets {
-  kMaxVectorLength8ShiftOffset = 4,
-  kMaxVectorLength16ShiftOffset = 3,
-  kMaxVectorLength32ShiftOffset = 2,
-  kMaxVectorLength64ShiftOffset = 1
+  kMaxVectorLength8ShiftOffset = 5,
+  kMaxVectorLength16ShiftOffset = 4,
+  kMaxVectorLength32ShiftOffset = 3,
+  kMaxVectorLength64ShiftOffset = 2
 };
 
 inline void SetVcfg(unsigned int config) {

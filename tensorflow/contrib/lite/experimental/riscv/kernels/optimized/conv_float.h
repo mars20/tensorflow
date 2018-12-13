@@ -88,13 +88,13 @@ inline void Conv(const ConvParams& params, const RuntimeShape& input_shape,
   // const int batches = MatchingArraySize(gemm_input_dims, 3, output_dims, 3);
 
   // printf("Input shape: %d %d %d %d\n", gemm_input_shape->Dims(0), gemm_input_shape->Dims(1),
-  //        gemm_input_shape->Dims(2), gemm_input_shape->Dims(3));
+  //       gemm_input_shape->Dims(2), gemm_input_shape->Dims(3));
 
   // printf("Filter shape: %d %d %d %d\n", filter_shape.Dims(0), filter_shape.Dims(1),
-  //        filter_shape.Dims(2), filter_shape.Dims(3));
+  //       filter_shape.Dims(2), filter_shape.Dims(3));
 
   // printf("Output shape: %d %d %d %d\n", output_shape.Dims(0), output_shape.Dims(1),
-  //        output_shape.Dims(2), output_shape.Dims(3));
+  //       output_shape.Dims(2), output_shape.Dims(3));
 
   const int input_depth = gemm_input_shape->Dims(3);
  // MatchingArraySize(*gemm_input_dims, 3, filter_dims, 0);
@@ -122,8 +122,8 @@ inline void Conv(const ConvParams& params, const RuntimeShape& input_shape,
 
   switch(blocks){
     case 1:
-      //  printf("Block size of 1\n");
       if(have_remainder && output_depth_multiplier) {
+        // printf("Block size of 1\n");
         MatrixMatrixMultiplyAccumulate4x1(gemm_input_data,
                                           input_rows,
                                           input_depth,
@@ -139,7 +139,7 @@ inline void Conv(const ConvParams& params, const RuntimeShape& input_shape,
                                           filter_cols,
                                           output_data + kMaxVectorLength32);
       } else {
-        //printf("Block size of 1 and no remainder\n");
+        // printf("Block size of 1 and no remainder\n");
         MatrixMatrixMultiplyAccumulate4x1(gemm_input_data,
                                           input_rows,
                                           input_depth,
@@ -150,8 +150,8 @@ inline void Conv(const ConvParams& params, const RuntimeShape& input_shape,
       }
       break;
     case 2:
-      //printf("Block size of 2\n");
       if(have_remainder) {
+        // printf("Block size of 2\n");
         MatrixMatrixMultiplyAccumulate4x2(gemm_input_data,
                                           input_rows,
                                           input_depth,
@@ -167,7 +167,7 @@ inline void Conv(const ConvParams& params, const RuntimeShape& input_shape,
                                           filter_cols,
                                           output_data + output_depth_multiplier*kMaxVectorLength32);
       } else {
-        //  printf("Block size of 2 and no remainder\n");
+        // printf("Block size of 2 and no remainder\n");
         MatrixMatrixMultiplyAccumulate4x2(gemm_input_data,
                                           input_rows,
                                           input_depth,
@@ -178,8 +178,8 @@ inline void Conv(const ConvParams& params, const RuntimeShape& input_shape,
       }
       break;
     case 3:
-      // printf("Block size of 3\n");
       if(have_remainder) {
+        // printf("Block size of 3\n");
         MatrixMatrixMultiplyAccumulate4x3(gemm_input_data,
                                           input_rows,
                                           input_depth,
@@ -195,7 +195,7 @@ inline void Conv(const ConvParams& params, const RuntimeShape& input_shape,
                                           filter_cols,
                                           output_data + output_depth_multiplier*kMaxVectorLength32);
       } else {
-        //  printf("Block size of 3 and no remainder\n");
+        // printf("Block size of 3 and no remainder\n");
         MatrixMatrixMultiplyAccumulate4x3(gemm_input_data,
                                           input_rows,
                                           input_depth,
@@ -206,8 +206,8 @@ inline void Conv(const ConvParams& params, const RuntimeShape& input_shape,
       }
       break;
     case 4:
-      //printf("Block size of 4\n");
       if(have_remainder) {
+        // printf("Block size of 4\n");
         MatrixMatrixMultiplyAccumulate(gemm_input_data,
                                           input_rows,
                                           input_depth,
