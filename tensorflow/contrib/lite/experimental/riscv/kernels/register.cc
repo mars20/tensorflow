@@ -47,20 +47,11 @@ TfLiteRegistration* Register_LSTM();
 TfLiteRegistration* Register_CONCATENATION();
 TfLiteRegistration* Register_MEAN();
 TfLiteRegistration* Register_MUL();
-
-// TfLiteRegistration* Register_EMBEDDING_LOOKUP();
-// TfLiteRegistration* Register_SVDF();
-// TfLiteRegistration* Register_PAD();
-// TfLiteRegistration* Register_STRIDED_SLICE();
-
-// TfLiteRegistration* Register_SPLIT();
-// TfLiteRegistration* Register_RESIZE_BILINEAR();
-// TfLiteRegistration* Register_SPACE_TO_BATCH_ND();
-// TfLiteRegistration* Register_BATCH_TO_SPACE_ND();
-// TfLiteRegistration* Register_SPACE_TO_DEPTH();
-// TfLiteRegistration* Register_MAXIMUM();
-// TfLiteRegistration* Register_MINIMUM();
-// TfLiteRegistration* Register_LOCAL_RESPONSE_NORMALIZATION();
+TfLiteRegistration* Register_PAD();
+TfLiteRegistration* Register_STRIDED_SLICE();
+TfLiteRegistration* Register_SPLIT();
+TfLiteRegistration* Register_MAXIMUM();
+TfLiteRegistration* Register_MINIMUM();
 
 
 const TfLiteRegistration* RiscvOpResolver::FindOp(tflite::BuiltinOperator op,
@@ -92,25 +83,12 @@ RiscvOpResolver::RiscvOpResolver() {
   AddBuiltin(BuiltinOperator_CONCATENATION, Register_CONCATENATION());
   AddBuiltin(BuiltinOperator_MUL, Register_MUL());
   AddBuiltin(BuiltinOperator_MEAN, Register_MEAN());
-
-  // AddBuiltin(BuiltinOperator_EMBEDDING_LOOKUP, Register_EMBEDDING_LOOKUP());
-  // AddBuiltin(BuiltinOperator_SVDF, Register_SVDF());
-  // AddBuiltin(BuiltinOperator_PAD, Register_PAD());
-  // AddBuiltin(BuiltinOperator_STRIDED_SLICE, Register_STRIDED_SLICE());
-  // AddBuiltin(BuiltinOperator_SPLIT, Register_SPLIT());
-  // AddBuiltin(BuiltinOperator_RESIZE_BILINEAR, Register_RESIZE_BILINEAR());
-  // AddBuiltin(BuiltinOperator_SPACE_TO_BATCH_ND, Register_SPACE_TO_BATCH_ND());
-  // AddBuiltin(BuiltinOperator_BATCH_TO_SPACE_ND, Register_BATCH_TO_SPACE_ND());
-  // AddBuiltin(BuiltinOperator_SPACE_TO_DEPTH, Register_SPACE_TO_DEPTH());
-  // AddBuiltin(BuiltinOperator_MAXIMUM, Register_MAXIMUM());
-  // AddBuiltin(BuiltinOperator_MINIMUM, Register_MINIMUM());
-  // AddBuiltin(BuiltinOperator_LOCAL_RESPONSE_NORMALIZATION,
-  //            Register_LOCAL_RESPONSE_NORMALIZATION());
+  AddBuiltin(BuiltinOperator_PAD, Register_PAD());
+  AddBuiltin(BuiltinOperator_STRIDED_SLICE, Register_STRIDED_SLICE());
+  AddBuiltin(BuiltinOperator_SPLIT, Register_SPLIT());
+  AddBuiltin(BuiltinOperator_MAXIMUM, Register_MAXIMUM());
+  AddBuiltin(BuiltinOperator_MINIMUM, Register_MINIMUM());
 }
-
- TfLiteRegistration* Register_MUL() {
-    return 0;
-  }
 }  // namespace riscv
 }  // namespace ops
 }  // namespace tflite
