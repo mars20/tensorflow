@@ -152,7 +152,7 @@ TfLiteRegistration* Register_CONCATENATION_OPT() {
 TfLiteRegistration* Register_CONCATENATION() {
   // TODO(ahentz): It turns out the two versions of Concatenation are almost
   // identical, so we should consider removing one.
-  return Register_CONCATENATION_OPT();
+  return Register_CONCATENATION_REF();
 }
 
 }  // namespace riscv
