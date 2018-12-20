@@ -393,7 +393,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input_to_output_weights->type) {
     case kTfLiteFloat32: {
-       reference_ops::FullLstmCell(
+       optimized_ops::FullLstmCell(
           input, input_to_input_weights, input_to_forget_weights,
           input_to_cell_weights, input_to_output_weights,
           recurrent_to_input_weights, recurrent_to_forget_weights,
@@ -535,7 +535,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       activation_temp->type == kTfLiteFloat32) {
     tflite::LstmCellParams op_params;
     // Float LSTM cell does not need parameters to be set: leave untouched.
-    reference_ops::BasicLstmCell(
+    optimized_ops::BasicLstmCell(
         op_params,
         // Inputs.
         GetTensorShape(input), GetTensorData<float>(input),
