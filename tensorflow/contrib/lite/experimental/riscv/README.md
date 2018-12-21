@@ -1,11 +1,27 @@
 # Tensorflow Lite for RISCV
 
 This is an experimental port of Tensorflow Lite for RISCV architecture
+Grab a copy of tensorflow sources
+
+```
+$ git clone git@github.com:mars20/tensorflow.git
+$ cd tensorflow/ 
+$ git checkout -b riscv-tf
+$ git pull origin riscv-tf
+
+```
+Set path to source files:
+
+```
+$ export TFLITE_RISCV_PATH=tensorflow/tensorflow/contrib/lite/experimental/riscv
+$ export TFLITE_PATH=tensorflow/tensorflow/contrib/lite
+
+```
 
 #### Prerequiste
 Install the dependencies by running the `download_dependencies.sh` script in tools/make
 
-#### Build minimal 
+#### Build minimal RISC-V target 
 
 ```shell
 $ export TFLITE_RISCV_PATH=tensorflow/tensorflow/contrib/lite/experimental/riscv
