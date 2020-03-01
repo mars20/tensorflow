@@ -5,9 +5,9 @@ Grab a copy of tensorflow sources
 
 ```
 $ git clone git@github.com:mars20/tensorflow.git
-$ cd tensorflow/ 
-$ git checkout -b riscv-tf
-$ git pull origin riscv-tf
+$ cd tensorflow/
+$ git fetch origin riscv-tf:riscv-tf
+$ git checkpoint riscv-tf
 
 ```
 Set path to source files:
@@ -19,7 +19,7 @@ $ export TFLITE_PATH=tensorflow/tensorflow/contrib/lite
 ```
 
 #### Prerequiste
-Install the dependencies by running the `download_dependencies.sh` script in tools/make
+Install the dependencies by running the `download_dependencies.sh` script in tensorflow/contrib/lite/experimental/riscv/tools/make 
 
 #### Build minimal RISC-V target 
 
