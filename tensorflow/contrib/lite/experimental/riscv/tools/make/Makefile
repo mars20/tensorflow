@@ -63,8 +63,8 @@ LIB_NAME := libtensorflow-lite.a
 MINIMAL_SRCS := \
 tensorflow/contrib/lite/experimental/riscv/examples/minimal.cc
 
-GEM5_SRCS := \
-tensorflow/contrib/lite/examples/minimal/m5op_arm_A64.S
+#GEM5_SRCS := \
+#tensorflow/contrib/lite/examples/minimal/m5op_arm_A64.S
 
 # Test sources
 TEST_SRCS := \
@@ -161,8 +161,8 @@ $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(TEST_SRCS))))
 BENCHMARK_OBJS := $(addprefix $(OBJDIR), \
 $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(BENCHMARK_SRCS))))
 
-GEM5_OBJ := $(addprefix $(OBJDIR), \
-$(patsubst %.S,%.o, $(GEM5_SRCS)))
+#GEM5_OBJ := $(addprefix $(OBJDIR), \
+#$(patsubst %.S,%.o, $(GEM5_SRCS)))
 
 # For normal manually-created TensorFlow C++ source files.
 $(OBJDIR)%.o: %.cc
@@ -192,10 +192,10 @@ $(LIB_PATH): tensorflow/contrib/lite/schema/schema_generated.h $(LIB_OBJS)
 	@mkdir -p $(dir $@)
 	$(AR) $(ARFLAGS) $(LIB_PATH) $(LIB_OBJS)
 
-$(MINIMAL_BINARY): $(MINIMAL_OBJS) $(GEM5_OBJ) $(LIB_PATH)
+$(MINIMAL_BINARY): $(MINIMAL_OBJS) $(LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
-	-o $(MINIMAL_BINARY) $(MINIMAL_OBJS) $(GEM5_OBJ) \
+	-o $(MINIMAL_BINARY) $(MINIMAL_OBJS)\
 	$(LIBFLAGS) $(LIB_PATH) $(LDFLAGS) $(LIBS)
 
 $(TEST_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
@@ -205,7 +205,7 @@ $(TEST_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
 	$(LIBFLAGS) $(LIB_PATH) $(LDFLAGS) $(LIBS)
 
 
-$(BENCHMARK_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(GEM5_OBJ) $(LIB_PATH)
+$(BENCHMARK_BINARY): $(BINDIR)% : $(OBJDIR)%.o $(LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
 	-o $@ $^ \
