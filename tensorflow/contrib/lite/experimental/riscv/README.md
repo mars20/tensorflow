@@ -10,6 +10,9 @@ $ git fetch origin riscv-tf:riscv-tf
 $ git checkpoint riscv-tf
 
 ```
+#### Prerequiste
+Install the dependencies by running the `download_dependencies.sh` script in tensorflow/contrib/lite/experimental/riscv/tools/make 
+
 Set path to source files:
 
 ```
@@ -17,9 +20,6 @@ $ export TFLITE_RISCV_PATH=tensorflow/tensorflow/contrib/lite/experimental/riscv
 $ export TFLITE_PATH=tensorflow/tensorflow/contrib/lite
 
 ```
-
-#### Prerequiste
-Install the dependencies by running the `download_dependencies.sh` script in tensorflow/contrib/lite/experimental/riscv/tools/make 
 
 #### Build minimal RISC-V target 
 
